@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
+use std::fs::File;
+use std::io::{Write, BufReader, Read};
+use std::path::Path;
 
 pub type PointInput = [i32; 2];
 
@@ -68,6 +71,46 @@ pub struct Task {
     pub fig: Vec<Point>,
     pub edges: Vec<Edge>,
     pub epsilon: i64,
+}
+
+
+fn conv_points(pts: &[PointInput]) -> Vec<Point> {
+    pts.iter().map(|p| Point { x: p[0], y: p[1] }).collect()
+}
+
+pub fn conv_input(t: &Input) -> Task {
+    let hole = conv_points(&t.hole);
+    let fig = conv_points(&t.figure.vertices);
+    let edges: Vec<_> = t.figure.edges.iter().map(|e| Edge { fr: e[0], to: e[1] }).collect();
+    return Task { hole, fig, edges, epsilon: t.epsilon };
+}
+
+fn get_old_score(test: usize) -> i64 {
+    let path = format!("outputs/{}.score", test);
+    if !Path::new(&path).exists() {
+        return std::i64::MAX;
+    }
+    let f = File::open(path).unwrap();
+    let mut s = String::new();
+    BufReader::new(f).read_to_string(&mut s).unwrap();
+    s.trim().parse().unwrap()
+}
+
+pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
+    let old_score = get_old_score(test);
+    if old_score <= solution.dislikes {
+        println!("skip writing answer for test {}, as cur score {} is not better than prev {}", test, solution.dislikes, old_score);
+        return;
+    }
+    let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
+    let out = OutputFormat { vertices };
+    let mut f = File::create(format!("outputs/{}.ans", test)).unwrap();
+    writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
+    let mut f_score = File::create(format!("outputs/{}.score", test)).unwrap();
+    writeln!(f_score, "{}", solution.dislikes).unwrap();
+    writeln!(f_all, "{}: {}", test, solution.dislikes).unwrap();
+    f_all.flush().unwrap();
+    drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", test));
 }
 
 pub mod rand;
