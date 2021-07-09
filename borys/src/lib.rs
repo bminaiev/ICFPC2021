@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::fs::File;
-use std::io::{Write};
-
+use std::io::{Write, BufReader, Read};
+use std::path::Path;
 
 pub type PointInput = [i32; 2];
 
@@ -85,7 +85,24 @@ pub fn conv_input(t: &Input) -> Task {
     return Task { hole, fig, edges, epsilon: t.epsilon };
 }
 
+fn get_old_score(test: usize) -> i64 {
+    let path = format!("outputs/{}.score", test);
+    if !Path::new(&path).exists() {
+        return std::i64::MAX;
+    }
+    let f = File::open(path).unwrap();
+    let mut s = String::new();
+    BufReader::new(f).read_to_string(&mut s).unwrap();
+    println!("{}", s.trim());
+    s.trim().parse().unwrap()
+}
+
 pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
+    let old_score = get_old_score(test);
+    if old_score <= solution.dislikes {
+        println!("skip writing answer for test {}, as cur score {} is not better than prev {}", test, solution.dislikes, old_score);
+        return;
+    }
     let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
     let out = OutputFormat { vertices };
     let mut f = File::create(format!("outputs/{}.ans", test)).unwrap();
@@ -93,7 +110,7 @@ pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &
     let mut f_score = File::create(format!("outputs/{}.score", test)).unwrap();
     writeln!(f_score, "{}", solution.dislikes).unwrap();
     writeln!(f_all, "{}: {}", test, solution.dislikes).unwrap();
-    f_all.flush();
+    f_all.flush().unwrap();
     drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", test));
 }
 

@@ -55,16 +55,16 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
 const MAX_ITERS: usize = 10_000;
 
 fn solve_with_helper(t: &Task, helper: &Helper, rnd: &mut Random) -> Option<Solution> {
-    for x in 0..helper.is_inside.len() {
-        for y in 0..helper.is_inside.len() {
-            if helper.is_inside[x][y] {
-                print!("x");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
+    // for x in 0..helper.is_inside.len() {
+    //     for y in 0..helper.is_inside.len() {
+    //         if helper.is_inside[x][y] {
+    //             print!("x");
+    //         } else {
+    //             print!(".");
+    //         }
+    //     }
+    //     println!();
+    // }
 
     for it in 0..MAX_ITERS {
         let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd);
