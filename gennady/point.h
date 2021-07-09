@@ -56,6 +56,10 @@ struct TPoint {
 using Point = TPoint<int>;
 //using Point = TPoint<long double>;
 
+int signum(long long x) {
+  return (x > 0 ? 1 : (x < 0 ? -1 : 0));
+}
+
 bool LiesOnSegment(Point a, Point b, Point p) {
   if (vmul(b - a, p - a) == 0) {
     if (smul(b - a, p - a) >= 0) {
