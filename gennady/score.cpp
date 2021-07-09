@@ -71,7 +71,8 @@ int main(int argc, char** argv) {
   out.close();
 
   Evaluator E(poly, vertices, edges, eps);
-  cout << E.eval(res) << '\n';
+  auto score = E.eval(res);
+  cout << score << '\n';
   cout << E.error_msg << '\n';
-  return 0;
+  return (score == -1 ? 1 : 0);
 }
