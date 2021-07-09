@@ -79,6 +79,14 @@ class Checker {
       if (!IsPointInside(p) || !IsPointInside(q)) {
         return false;
       }
+      for (int i = 0; i < n; i++) {
+        int j = (i + 1) % n;
+        if (signum(vmul(q - p, v[i] - p)) * signum(vmul(q - p, v[j] - p)) == -1) {
+          if (signum(vmul(v[j] - v[i], p - v[i])) * signum(vmul(v[j] - v[i], q - v[i])) == -1) {
+            return false;
+          }
+        }
+      }
       std::vector<Point> pts = {p, q};
       for (int i = 0; i < n; i++) {
         if (LiesOnSegment(p, q, v[i])) {
