@@ -56,7 +56,7 @@ impl Point {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Edge {
     pub fr: usize,
     pub to: usize,
@@ -73,3 +73,4 @@ pub struct Task {
 pub mod rand;
 pub mod drawer;
 pub mod helper;
+pub mod local_optimizer;

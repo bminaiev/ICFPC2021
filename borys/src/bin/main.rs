@@ -6,7 +6,7 @@ use std::cmp::{max, min};
 use std::mem::swap;
 use std::io::{Write};
 
-use borys::{Point, Task};
+use borys::{Point, Task, local_optimizer};
 use borys::helper::Helper;
 
 fn conv_points(pts: &[PointInput]) -> Vec<Point> {
@@ -39,35 +39,13 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
     need_to_put.sort();
     let v_to_put = need_to_put.last().unwrap().v;
     let mut possible_positions = vec![];
-    let edges: Vec<_> = t.edges.iter().filter(|e| e.fr == v_to_put && cur_positions[e.to].is_some() || e.to == v_to_put && cur_positions[e.fr].is_some()).collect();
+    let edges: Vec<_> = t.edges.iter().filter(|e| e.fr == v_to_put && cur_positions[e.to].is_some() || e.to == v_to_put && cur_positions[e.fr].is_some()).cloned().collect();
     for x in 0..helper.max_c {
         for y in 0..helper.max_c {
             let p = Point { x, y };
-            if !helper.is_point_inside(&p) {
-                continue;
+            if helper.is_valid_position(v_to_put, &p, &edges, &cur_positions, t) {
+                possible_positions.push(p);
             }
-            let mut ok = true;
-            for edge in edges.iter() {
-                let another = edge.to + edge.fr - v_to_put;
-                let another_p = cur_positions[another].unwrap();
-                if !helper.is_edge_inside(&p, &another_p) {
-                    ok = false;
-                    break;
-                }
-                let init_d2 = t.fig[v_to_put].d2(&t.fig[another]);
-                let cur_d2 = p.d2(&another_p);
-                let delta = (init_d2 - cur_d2).abs();
-                // delta / init_d2 <= eps / 10^6
-                // delta * 10^6 <= eps * init_d2
-                if delta * 1_000_000 > t.epsilon * init_d2 {
-                    ok = false;
-                    break;
-                }
-            }
-            if !ok {
-                continue;
-            }
-            possible_positions.push(p);
         }
     }
     if possible_positions.is_empty() {
@@ -80,7 +58,7 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
 
 const MAX_ITERS: usize = 10_000;
 
-fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
+fn solve_with_helper(t: &Task, helper: &Helper, rnd: &mut Random) -> Option<Solution> {
     for x in 0..helper.is_inside.len() {
         for y in 0..helper.is_inside.len() {
             if helper.is_inside[x][y] {
@@ -92,9 +70,8 @@ fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
         println!();
     }
 
-    let mut rnd = Random::new(787788);
     for it in 0..MAX_ITERS {
-        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], &mut rnd);
+        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd);
         if solution.is_some() {
             println!("wow!!! score = {}", solution.clone().unwrap().dislikes);
             return solution;
@@ -108,8 +85,15 @@ fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
 }
 
 fn solve(t: &Task) -> Option<Solution> {
+    let mut rnd = Random::new(787788);
     let helper = Helper::create(t);
-    return solve_with_helper(t, &helper);
+    match solve_with_helper(t, &helper, &mut rnd) {
+        None => None,
+        Some(solution) => {
+            let optimized_solution = local_optimizer::optimize(t, &helper, solution, &mut rnd);
+            Some(optimized_solution)
+        }
+    }
 }
 
 fn conv_input(t: &Input) -> Task {
@@ -120,9 +104,9 @@ fn conv_input(t: &Input) -> Task {
 }
 
 fn main() {
-    // const TASK: usize = 14;
+    const TASK: usize = 2;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
-    for problem_id in 4..=4 {
+    for problem_id in TASK..=TASK {
         println!("Start test {}", problem_id);
         let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
         let reader = BufReader::new(file);

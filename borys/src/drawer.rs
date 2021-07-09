@@ -13,6 +13,14 @@ const C: i32 = 8;
 
 const BLACK: Rgb<u8> = Rgb([0u8, 0u8, 0u8]);
 const RED: Rgb<u8> = Rgb([255u8, 0u8, 0u8]);
+const GREEN: Rgb<u8> = Rgb([0u8, 255u8, 0u8]);
+
+fn color_inside(from: Rgb<u8>, to: Rgb<u8>, part: f64) -> Rgb<u8> {
+    let mid = |x: u8, y: u8| -> u8 {
+        ((x as f64) * (1.0 - part) + (y as f64) * part) as u8
+    };
+    Rgb([mid(from.0[0], to.0[0]), mid(from.0[1], to.0[1]), mid(from.0[2], to.0[2])])
+}
 
 fn draw_line(img: &mut RgbImage, p1: &Point, p2: &Point, color: Rgb<u8>) {
     draw_line_segment_mut(
@@ -38,7 +46,9 @@ pub fn save_test(task: &Task, solution: &Solution, path: &str) {
     for e in task.edges.iter() {
         let p1 = solution.vertices[e.fr];
         let p2 = solution.vertices[e.to];
-        draw_line(&mut img, &p1, &p2, RED);
+        let score = helper.edge_score(task, e.fr, e.to, &p1, &p2);
+        let color = color_inside(GREEN, RED, score);
+        draw_line(&mut img, &p1, &p2, color);
     }
     let font_data: &[u8] = include_bytes!("../assets/times.ttf");
     let font: Font<'static> = Font::try_from_bytes(font_data).unwrap();

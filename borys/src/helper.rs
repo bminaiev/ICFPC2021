@@ -119,4 +119,36 @@ impl Helper {
         hole_and_first.push(hole_and_first[0]);
         Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c: max_c as i32 }
     }
+
+    pub fn is_valid_position(&self, v: usize, p: &Point, edges: &[Edge], cur_positions: &[Option<Point>], t: &Task) -> bool {
+        if !self.is_point_inside(&p) {
+            return false;
+        }
+        for edge in edges.iter() {
+            let another = edge.to + edge.fr - v;
+            let another_p = cur_positions[another].unwrap();
+            if !self.is_edge_inside(&p, &another_p) {
+                return false;
+            }
+            let init_d2 = t.fig[v].d2(&t.fig[another]);
+            let cur_d2 = p.d2(&another_p);
+            let delta = (init_d2 - cur_d2).abs();
+            // delta / init_d2 <= eps / 10^6
+            // delta * 10^6 <= eps * init_d2
+            if delta * 1_000_000 > t.epsilon * init_d2 {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 0 - good
+    // 1 - bad
+    pub fn edge_score(&self, t: &Task, v1: usize, v2: usize, p1: &Point, p2: &Point) -> f64 {
+        let init_d2 = t.fig[v1].d2(&t.fig[v2]);
+        let cur_d2 = p1.d2(&p2);
+        let delta = (init_d2 - cur_d2).abs();
+        // delta / init_d2 <= eps / 10^6
+        return (delta as f64) / (init_d2 as f64) / (t.epsilon as f64 / 1000000.0);
+    }
 }
