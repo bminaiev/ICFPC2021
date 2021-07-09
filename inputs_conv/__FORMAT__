@@ -1,0 +1,19 @@
+hole_n
+hole_1_x hole_1_y
+hole_2_x hole_2_y
+...
+hole_n_x hole_n_y
+
+figure_edges_n
+figure_edge_1_from figure_edge_1_to
+figure_edge_2_from figure_edge_2_to
+...
+figure_edge_n_from figure_edge_n_to
+
+figure_vertices_n
+figure_vertex_1_x figure_vertex_1_y
+figure_vertex_2_x figure_vertex_2_y
+...
+figure_vertex_1_n figure_vertex_1_n
+
+epsilon
