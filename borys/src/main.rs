@@ -191,7 +191,7 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
     return solve_rec(t, helper, cur_positions, rnd);
 }
 
-const MAX_ITERS: usize = 1000;
+const MAX_ITERS: usize = 10_000;
 
 fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
     for x in 0..helper.is_inside.len() {
@@ -282,6 +282,7 @@ fn solve_input(t: &Input) -> Option<Solution> {
 
 fn main() {
     // const TASK: usize = 14;
+    let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     for problem_id in 1..=59 {
         println!("Start test {}", problem_id);
         let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
@@ -291,7 +292,9 @@ fn main() {
 
         let res = solve_input(&input);
         match res {
-            None => {}
+            None => {
+                writeln!(f_all, "{}: no solution", problem_id).unwrap();
+            }
             Some(solution) => {
                 let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
                 let out = OutputFormat { vertices };
@@ -299,8 +302,10 @@ fn main() {
                 writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
                 let mut f_score = File::create(format!("outputs/{}.score", problem_id)).unwrap();
                 writeln!(f_score, "{}", solution.dislikes).unwrap();
+                writeln!(f_all, "{}: {}", problem_id, solution.dislikes).unwrap();
             }
         }
+        f_all.flush().unwrap();
         // dbg!(input);
     }
 }
