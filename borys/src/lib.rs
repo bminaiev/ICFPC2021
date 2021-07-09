@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::cmp::min;
+use std::cmp::{min, Ordering};
 use std::fs::File;
 use std::io::{Write, BufReader, Read};
 use std::path::Path;
+use crate::helper::Helper;
 
 pub type PointInput = [i32; 2];
 
@@ -28,10 +29,27 @@ pub struct OutputFormat {
 pub struct Solution {
     pub dislikes: i64,
     pub vertices: Vec<Point>,
+    pub edge_scores: Vec<f64>,
 }
 
 impl Solution {
-    pub fn create(vertices: Vec<Point>, t: &Task) -> Self {
+    pub fn cmp(&self, other: &Self) -> Ordering {
+        if self.dislikes != other.dislikes {
+            return self.dislikes.cmp(&other.dislikes);
+        }
+        for (my, other) in self.edge_scores.iter().zip(other.edge_scores.iter()) {
+            match my.partial_cmp(&other).unwrap() {
+                Ordering::Less => return Ordering::Less,
+                Ordering::Greater => return Ordering::Greater,
+                Ordering::Equal => {}
+            }
+        }
+        return Ordering::Equal;
+    }
+}
+
+impl Solution {
+    pub fn create(vertices: Vec<Point>, t: &Task, h: &Helper) -> Self {
         let mut dislikes = 0;
         for hole in t.hole.iter() {
             let mut min_dist = std::i64::MAX;
@@ -40,7 +58,10 @@ impl Solution {
             }
             dislikes += min_dist;
         }
-        Self { vertices, dislikes }
+        let mut edge_scores: Vec<_> = t.edges.iter().map(|e|
+            h.edge_score(t, e.fr, e.to, &vertices[e.fr], &vertices[e.to])).collect();
+        edge_scores.sort_by(|a, b| a.partial_cmp(&b).unwrap().reverse());
+        Self { vertices, dislikes, edge_scores }
     }
 }
 
@@ -59,7 +80,7 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Edge {
     pub fr: usize,
     pub to: usize,
@@ -117,3 +138,4 @@ pub mod rand;
 pub mod drawer;
 pub mod helper;
 pub mod local_optimizer;
+pub mod solver;

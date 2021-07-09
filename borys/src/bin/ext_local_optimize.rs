@@ -131,9 +131,10 @@ impl Scanner {
 pub fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
 
-    let outputs_suffix = ""; // "_romka"
+    let outputs_suffix = "_romka"; // "_romka"
 
-    for test in 58..=58 {
+    const TEST: usize = 5;
+    for test in TEST..=TEST {
         println!("TEST: {}", test);
         let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
         if !Path::new(&romka_path).exists() {
@@ -154,10 +155,22 @@ pub fn main() {
         let task = conv_input(&input);
         let helper = Helper::create(&task);
 
-        let mut rnd = Random::new(787788);
-        let solution = Solution::create(vertices, &task);
-        let solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd);
+        let mut rnd = Random::new(787881);
 
-        save_solution(&solution, test, &mut f_all, &task);
+        for _ in 0..10 {
+            let mut solution = Solution::create(vertices.clone(), &task, &helper);
+
+            loop {
+                let old_dislikes = solution.dislikes;
+                let local_optimized_solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd);
+                let global_optimized = solver::not_local_optimize(&task, &helper, &mut rnd, local_optimized_solution);
+                solution = global_optimized;
+                if solution.dislikes >= old_dislikes {
+                    break;
+                }
+            }
+
+            save_solution(&solution, test, &mut f_all, &task);
+        }
     }
 }
