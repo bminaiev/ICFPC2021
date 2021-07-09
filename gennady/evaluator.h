@@ -23,6 +23,7 @@ class Evaluator {
       v = vertices;
       e = edges;
       eps = epsilon;
+      error_msg = "no errors found!";
     }
 
     long long eval(std::vector<Point> pts) {

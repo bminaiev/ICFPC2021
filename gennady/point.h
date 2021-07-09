@@ -73,7 +73,7 @@ bool LiesOnSegment(Point a, Point b, Point p) {
 
 template <typename T>
 std::string to_string(const TPoint<T>& p) {
-  return "(" + to_string(p.x) + ", " + to_string(p.y) + ")";
+  return "(" + std::to_string(p.x) + ", " + std::to_string(p.y) + ")";
 }
 
 #endif
