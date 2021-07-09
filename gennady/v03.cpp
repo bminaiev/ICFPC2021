@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
     if (v[0] == Point(0, 31)) {
 //      debug(ii, v);
     }
-    for (int x = max_x; x >= 0; x--) {
+    for (int x = max_x; x >= 0; x-=2) {
       for (int y = 0; y <= max_y; y++) {
         if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
 //          debug(ii, v, x, y);
