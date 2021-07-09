@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::BufReader;
 use borys::{Input, PointInput, OutputFormat};
 use borys::rand::Random;
-use std::cmp::max;
+use std::cmp::{max, min};
 use std::mem::swap;
-use std::io::{Write, Error};
+use std::io::{Write};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 struct Point {
@@ -106,15 +106,23 @@ impl Helper {
     }
 }
 
+#[derive(Clone)]
 struct Solution {
-    dislikes: i32,
+    dislikes: i64,
     vertices: Vec<Point>,
 }
 
 impl Solution {
     fn create(vertices: Vec<Point>, t: &Task) -> Self {
-        // TODO: implement dislikes
-        Self { vertices, dislikes: 0 }
+        let mut dislikes = 0;
+        for hole in t.hole.iter() {
+            let mut min_dist = std::i64::MAX;
+            for p in vertices.iter() {
+                min_dist = min(min_dist, p.d2(&hole));
+            }
+            dislikes += min_dist;
+        }
+        Self { vertices, dislikes }
     }
 }
 
@@ -183,6 +191,8 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
     return solve_rec(t, helper, cur_positions, rnd);
 }
 
+const MAX_ITERS: usize = 1000;
+
 fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
     for x in 0..helper.is_inside.len() {
         for y in 0..helper.is_inside.len() {
@@ -196,13 +206,15 @@ fn solve_with_helper(t: &Task, helper: &Helper) -> Option<Solution> {
     }
 
     let mut rnd = Random::new(787788);
-    for it in 0..10000 {
+    for it in 0..MAX_ITERS {
         let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], &mut rnd);
         if solution.is_some() {
-            println!("wow!!!");
+            println!("wow!!! score = {}", solution.clone().unwrap().dislikes);
             return solution;
         } else {
-            println!("bad.. {}", it);
+            if it % 100 == 0 {
+                println!("bad.. {}", it);
+            }
         }
     }
     return None;
@@ -269,8 +281,9 @@ fn solve_input(t: &Input) -> Option<Solution> {
 }
 
 fn main() {
-    const TASK: usize = 17;
-    for problem_id in TASK..=TASK {
+    // const TASK: usize = 14;
+    for problem_id in 1..=59 {
+        println!("Start test {}", problem_id);
         let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
         let reader = BufReader::new(file);
 
@@ -284,6 +297,8 @@ fn main() {
                 let out = OutputFormat { vertices };
                 let mut f = File::create(format!("outputs/{}.ans", problem_id)).unwrap();
                 writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
+                let mut f_score = File::create(format!("outputs/{}.score", problem_id)).unwrap();
+                writeln!(f_score, "{}", solution.dislikes).unwrap();
             }
         }
         // dbg!(input);
