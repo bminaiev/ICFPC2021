@@ -131,9 +131,11 @@ impl Scanner {
 pub fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
 
-    for test in 1..=10 {
+    let outputs_suffix = ""; // "_romka"
+
+    for test in 58..=58 {
         println!("TEST: {}", test);
-        let romka_path = format!("../outputs_romka/{}.ans", test);
+        let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
         if !Path::new(&romka_path).exists() {
             continue;
         }

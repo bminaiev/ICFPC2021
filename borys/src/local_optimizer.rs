@@ -10,6 +10,8 @@ struct Shift {
     dy: i32,
 }
 
+const DRAW_PICTURES: bool = false;
+
 pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random) -> Solution {
     let n = t.fig.len();
     println!("start local optimizations.. eps = {}", t.epsilon);
@@ -78,7 +80,9 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                                     need_rev_back = false;
                                     println!("new score: {}, big move: {}", solution.dislikes, big_moves);
                                     iter += 1;
-                                    drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
+                                    if DRAW_PICTURES {
+                                        drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
+                                    }
                                 }
                                 break;
                             }

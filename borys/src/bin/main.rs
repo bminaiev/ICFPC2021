@@ -104,7 +104,7 @@ fn main() {
             continue;
         }
         println!("Start test {}", problem_id);
-        for _ in 0..10 {
+        for _ in 0..1000 {
             let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
             let reader = BufReader::new(file);
 
