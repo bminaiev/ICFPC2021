@@ -14,6 +14,8 @@ class Checker {
     int max_y;
     std::vector<std::vector<bool>> inside;
 
+    Checker() { }
+
     Checker(std::vector<Point> vv) {
       v = vv;
       n = (int) v.size();
