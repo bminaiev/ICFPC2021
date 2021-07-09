@@ -80,46 +80,48 @@ fn solve_with_helper(t: &Task, helper: &Helper, rnd: &mut Random) -> Option<Solu
     return None;
 }
 
-fn solve(t: &Task) -> Option<Solution> {
-    let mut rnd = Random::new(787788);
+fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
     let helper = Helper::create(t);
-    match solve_with_helper(t, &helper, &mut rnd) {
+    match solve_with_helper(t, &helper, rnd) {
         None => None,
         Some(solution) => {
-            let optimized_solution = local_optimizer::optimize(t, &helper, solution, &mut rnd);
+            let optimized_solution = local_optimizer::optimize(t, &helper, solution, rnd);
             Some(optimized_solution)
         }
     }
 }
 
 
-
 fn main() {
-    // const TASK: usize = 58;
+    const TASK: usize = 59;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54]).collect();
-    for problem_id in 1..=59 {
+
+    let mut rnd = Random::new(787788);
+    for problem_id in TASK..=TASK {
         if not_interesting_tests.contains(&problem_id) {
             println!("Skip test: {}", problem_id);
             continue;
         }
         println!("Start test {}", problem_id);
-        let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
-        let reader = BufReader::new(file);
+        for _ in 0..10 {
+            let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
+            let reader = BufReader::new(file);
 
-        let input: Input = serde_json::from_reader(reader).unwrap();
+            let input: Input = serde_json::from_reader(reader).unwrap();
 
-        let task = conv_input(&input);
-        let res = solve(&task);
-        match res {
-            None => {
-                writeln!(f_all, "{}: no solution", problem_id).unwrap();
+            let task = conv_input(&input);
+            let res = solve(&task, &mut rnd);
+            match res {
+                None => {
+                    writeln!(f_all, "{}: no solution", problem_id).unwrap();
+                }
+                Some(solution) => {
+                    save_solution(&solution, problem_id, &mut f_all, &task);
+                }
             }
-            Some(solution) => {
-                save_solution(&solution, problem_id, &mut f_all, &task);
-            }
+            f_all.flush().unwrap();
         }
-        f_all.flush().unwrap();
         // dbg!(input);
     }
 }
