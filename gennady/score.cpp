@@ -2,7 +2,27 @@
  *    author:  tourist
  *    created: 09.07.2021 17:21:07       
 **/
-#include <bits/stdc++.h>
+#include <vector>
+#include <cassert>
+#include <list>
+#include <map>
+#include <set>
+#include <deque>
+#include <stack>
+#include <bitset>
+#include <algorithm>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+
 #include "evaluator.h"
 
 using namespace std;
