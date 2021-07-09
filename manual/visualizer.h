@@ -120,10 +120,10 @@ protected:
         } else if (event->key() == Qt::Key_Down || event->key() == Qt::Key_J) {
             movey += MOVE_COEFF / scaley;
         } else if (event->key() == Qt::Key_0) {
-            scalex = 1;
-            scaley = 1;
-            movex = 0;
-            movey = 0;
+            scalex = 2;
+            scaley = 2;
+            movex = -550;
+            movey = -550;
         }
 
         // std::cerr << movex << " " << movey << " " << scalex << " " << scaley << std::endl;
