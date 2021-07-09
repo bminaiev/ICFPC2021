@@ -176,6 +176,28 @@ int main(int argc, char** argv) {
     has_edge[e.first][e.second] = has_edge[e.second][e.first] = true;
   }
 
+
+  vector<vector<vector<Point>>> delta1(nv, vector<vector<Point>>(nv));
+  for (int i = 0; i < nv; i++) {
+    for (int j = 0; j < nv; j++) {
+      if (has_edge[i][j]) {
+        for (int dx = -max_x; dx <= max_x; dx++) {
+          for (int dy = -max_y; dy <= max_y; dy++) {
+            int new_len = Point(dx, dy).abs2();
+            int old_len = (vertices[i] - vertices[j]).abs2();
+            long long num = abs(new_len - old_len);
+            long long den = old_len;
+            if (num * EPS_COEF > eps * den) {
+              continue;
+            }
+            delta1[i][j].push_back(Point(dx, dy));
+          }
+        }
+        debug(i, j, delta1[i][j].size());
+      }
+    }
+  }
+
   vector<int> order(nv);
   iota(order.begin(), order.end(), 0);
   debug(nv, eps);
@@ -183,11 +205,12 @@ int main(int argc, char** argv) {
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
     do {
-      vector<int> seq(nv, 0);
+      vector<int> seq(2 * nv, 0);
       for (int i = 0; i < nv; i++) {
         for (int j = 0; j < i; j++) {
           if (has_edge[order[i]][order[j]]) {
-            seq[i] += 1;
+            seq[i] += 1000000;
+            seq[i + nv] += - (int) delta1[order[i]][order[j]].size();
           }
         }
       }
@@ -205,11 +228,12 @@ int main(int argc, char** argv) {
     mt19937 rng(58);
     for (auto iter = 0; iter < (int) 1e6; iter++) {
       shuffle(order.begin(), order.end(), rng);
-      vector<int> seq(nv, 0);
+      vector<int> seq(2 * nv, 0);
       for (int i = 0; i < nv; i++) {
         for (int j = 0; j < i; j++) {
           if (has_edge[order[i]][order[j]]) {
-            seq[i] += 1;
+            seq[i] += 1000000;
+            seq[i + nv] += - (int) delta1[order[i]][order[j]].size();
           }
         }
       }
@@ -245,16 +269,59 @@ int main(int argc, char** argv) {
       }
       return;
     }
-    if (v[0] == Point(0, 31)) {
-//      debug(ii, v);
-    }
-    for (int x = 0; x <= max_x; x++) {
-      for (int y = 0; y <= max_y; y++) {
-        if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
-//          debug(ii, v, x, y);
+    int id1 = -1;
+    int id2 = -1;
+    for (int jj = 0; jj < ii; jj++) {
+      int i = order[ii];
+      int j = order[jj];
+      if (has_edge[i][j]) {
+        if (id1 == -1) {
+          id1 = j;
+        } else {
+          if (id2 == -1) {
+            id2 = j;
+          }
         }
+      }
+    }
+    if (id1 == -1) {
+      for (int x = 0; x <= max_x; x++) {
+        for (int y = 0; y <= max_y; y++) {
+          if (E.c.IsPointInside(Point(x, y))) {
+            v[order[ii]] = Point(x, y);
+            bool ok = true;
+            for (int jj = 0; jj < ii; jj++) {
+              int i = order[ii];
+              int j = order[jj];
+              if (has_edge[i][j]) {
+                if (!E.c.IsSegmentInside(v[i], v[j])) {
+                  ok = false;
+                  break;
+                }
+                int new_len = (v[i] - v[j]).abs2();
+                int old_len = (vertices[i] - vertices[j]).abs2();
+                long long num = abs(new_len - old_len);
+                long long den = old_len;
+                if (num * EPS_COEF > eps * den) {
+                  ok = false;
+                  break;
+                }
+              }
+            }
+            if (ok) {
+              Dfs(ii + 1);
+            }
+            v[order[ii]] = Point(-1, -1);
+          }
+        }
+      }
+      return;
+    }
+    if (id2 >= -1) {
+      for (auto& delta : delta1[id1][order[ii]]) {
+        int x = v[id1].x + delta.x;
+        int y = v[id1].y + delta.y;
         if (E.c.IsPointInside(Point(x, y))) {
-//          debug("hi");
           v[order[ii]] = Point(x, y);
           bool ok = true;
           for (int jj = 0; jj < ii; jj++) {
@@ -269,10 +336,6 @@ int main(int argc, char** argv) {
               int old_len = (vertices[i] - vertices[j]).abs2();
               long long num = abs(new_len - old_len);
               long long den = old_len;
-              if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
-//                debug(new_len, old_len);
-//                debug(num * EPS_COEF, eps * den);
-              }
               if (num * EPS_COEF > eps * den) {
                 ok = false;
                 break;
@@ -285,16 +348,47 @@ int main(int argc, char** argv) {
           v[order[ii]] = Point(-1, -1);
         }
       }
+      return;
     }
+/*      for (auto& delta : delta1[id1][order[ii]]) {
+        int x = v[id1].x + delta.first;
+        int y = v[id1].y + delta.second;
+        if (E.c.IsPointInside(Point(x, y))) {
+          v[order[ii]] = Point(x, y);
+          bool ok = true;
+          for (int jj = 0; jj < ii; jj++) {
+            int i = order[ii];
+            int j = order[jj];
+            if (has_edge[i][j]) {
+              if (!E.c.IsSegmentInside(v[i], v[j])) {
+                ok = false;
+                break;
+              }
+              int new_len = (v[i] - v[j]).abs2();
+              int old_len = (vertices[i] - vertices[j]).abs2();
+              long long num = abs(new_len - old_len);
+              long long den = old_len;
+              if (num * EPS_COEF > eps * den) {
+                ok = false;
+                break;
+              }
+            }
+          }
+          if (ok) {
+            Dfs(ii + 1);
+          }
+          v[order[ii]] = Point(-1, -1);
+        }
+      }*/
   };
   Dfs(0);
   cout << "done" << '\n';
 
-  ofstream out("../outputs/" + to_string(xid) + ".ans");
+/*  ofstream out("../outputs/" + to_string(xid) + ".ans");
   out << best_v.size() << '\n';
   for (auto& p : best_v) {
     out << p.x << " " << p.y << '\n';
   }
-  out.close();
+  out.close();*/
   return 0;
 }
