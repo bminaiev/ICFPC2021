@@ -1,5 +1,6 @@
 import requests as r
 import sys
+import os
 
 apikey = 'fbb4e890-43a5-4864-92be-d31513e47acd'
 
@@ -13,6 +14,11 @@ try:
 except:
   print('test-id must be an integer')
   exit()
+
+if os.name == 'nt':
+  code = os.system('call "../gennady/score.exe" ' + str(test))
+  if code == 1:
+    exit()
 
 try:
   f = open(str(test) + '.ans', 'r')
