@@ -31,18 +31,18 @@ int main(int argc, char** argv) {
   cin.tie(0);
   if (argc != 2) {
     cerr << "usage: score [test-id]" << '\n';
-    return 0;
+    return 1;
   }
   int x = atoi(argv[1]);
   if (to_string(x) != argv[1]) {
     cerr << "test-id must be an integer" << '\n';
-    return 0;
+    return 1;
   }
 
   ifstream in("../inputs_conv/" + to_string(x) + ".problem");
   if (!in.is_open()) {
     cerr << "input " << x << ".problem doesn't exist (check relative path?)" << '\n';
-    return 0;
+    return 1;
   }
   vector<Point> poly;
   vector<Point> vertices;
@@ -71,16 +71,16 @@ int main(int argc, char** argv) {
   in >> eps;
   in.close();
 
-  ifstream out("../outputs/" + to_string(x) + ".ans");
+  ifstream out("../outputs_romka/" + to_string(x) + ".ans");
   if (!out.is_open()) {
     cerr << "output " << x << ".ans doesn't exist (check relative path?)" << '\n';
-    return 0;
+    return 1;
   }
   int new_nv;
   out >> new_nv;
   if (nv != new_nv) {
     cerr << "wrong number of points: expected " << nv << ", found " << new_nv << '\n';
-    return 0;
+    return 1;
   }
   vector<Point> res(nv);
   for (int i = 0; i < nv; i++) {

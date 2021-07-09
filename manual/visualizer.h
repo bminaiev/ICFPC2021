@@ -58,41 +58,6 @@ QBrush magentaBrush(Qt::magenta);
 QBrush lightBlueBrush(QColor(159, 194, 229));
 QBrush balloonBrush(QColor(0xbc, 0xbd, 0xba, 222));
 
-std::vector<QColor> playerColors = {
-    QColor(0, 55, 127),
-    QColor(0, 127, 55),
-    QColor(127, 0, 55),
-    QColor(215, 110, 0)
-};
-
-std::vector<QColor> playerColorsAlpha = {
-    QColor(0, 55, 127, 64),
-    QColor(0, 127, 55, 64),
-    QColor(127, 0, 55, 64),
-    QColor(215, 110, 0, 64)
-};
-
-std::vector<QBrush> brushesPerPlayer = {
-    QBrush(playerColors[0]),
-    QBrush(playerColors[1]),
-    QBrush(playerColors[2]),
-    QBrush(playerColors[3])
-};
-
-std::vector<QBrush> brushesPerPlayerAlpha = {
-    QBrush(playerColorsAlpha[0]),
-    QBrush(playerColorsAlpha[1]),
-    QBrush(playerColorsAlpha[2]),
-    QBrush(playerColorsAlpha[3])
-};
-
-std::vector<QPen> pensPerPlayer = {
-    QPen(playerColors[0]),
-    QPen(playerColors[1]),
-    QPen(playerColors[2]),
-    QPen(playerColors[3])
-};
-
 }
 
 class Widget : public QWidget {

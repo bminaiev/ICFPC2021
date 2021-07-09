@@ -21,6 +21,9 @@
 #include <memory.h>
 #include <cstdlib>
 
+#include "point.h"
+#include "evaluator.h"
+
 using namespace std;
 
 #define forn(i, n) for (int i = 0; i < (int)(n); i++)
@@ -36,27 +39,22 @@ const int dy[] = {0, -1, 0, 1, 0};
 
 const int inf = 1e9;
 
-
-struct Point {
-    int x, y;
-};
-
-int dist2(const Point& a, const Point& b) {
-    return sqr(a.x - b.x) + sqr(a.y - b.y);
-}
-
 struct Edge {
     int from, to, D;
 };
 
 int N, M, H, E;
-vector<Point> points;
+vector<PointD> points;
+vector<Point> srcPoints;
 vector<Edge> edges;
-vector<Point> hole;
-string test_id;
+vector<pii> edgePairs;
+vector<PointD> hole;
+vector<int> mt;
+int test_id;
+Evaluator ev;
 
 void readInput() {
-    const string fname = "../inputs_conv/" + test_id + ".problem";
+    const string fname = "../inputs_conv/" + to_string(test_id) + ".problem";
     freopen(fname.c_str(), "r", stdin);
     cin >> H;
     hole.resize(H + 1);
@@ -65,27 +63,60 @@ void readInput() {
     
     cin >> M;
     edges.resize(M);
+    edgePairs.resize(M);
     forn(i, M) {
         cin >> edges[i].from >> edges[i].to;        
+        edgePairs[i] = {edges[i].from, edges[i].to};
     }
     
     cin >> N;
     points.resize(N);
-    forn(i, N) cin >> points[i].x >> points[i].y;
+    srcPoints.resize(N);
+    forn(i, N) {
+        cin >> srcPoints[i].x >> srcPoints[i].y;
+        points[i].x = srcPoints[i].x;
+        points[i].y = srcPoints[i].y;
+    }
+    mt.assign(N, -1);
 
     forn(i, M) {
-        edges[i].D = dist2(points[edges[i].from], points[edges[i].to]);
+        edges[i].D = (points[edges[i].from] - points[edges[i].to]).abs2();
     }
     
-    cin >> E;    
+    cin >> E;
+
+    vector<Point> holeInt(H);
+    forn(i, H) {
+        holeInt[i].x = round(hole[i].x);
+        holeInt[i].y = round(hole[i].y);
+    }
+    ev = Evaluator(holeInt, srcPoints, edgePairs, E);
+    cerr << "read input " << test_id << endl;    
 }
 
-void printSolution() {
-    const string fname = "../outputs/" + test_id + ".ans";
+void loadSolution() {
+    try {
+        const string fname = "../outputs_romka/" + to_string(test_id) + ".ans";
+        ifstream fin(fname);
+        int nn;
+        if (!(fin >> nn)) return;
+        assert(nn == N);
+        for (auto& p : points)
+            fin >> p.x >> p.y;
+        fin.close();
+
+        cerr << "loaded from " << fname << endl;   
+    } catch (const std::exception& e) {
+        cerr << e.what() << endl;
+    }
+}
+
+void saveSolution() {
+    const string fname = "../outputs_romka/" + to_string(test_id) + ".ans";
     ofstream fout(fname);
     fout << N << endl;
     for (const auto& p : points)
-        fout << p.x << " " << p.y << endl;
+        fout << round(p.x) << " " << round(p.y) << endl;
     fout.close();
 
     cerr << "saved to " << fname << endl;   
