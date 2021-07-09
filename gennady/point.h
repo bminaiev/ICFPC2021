@@ -36,6 +36,10 @@ struct TPoint {
     return (y < rhs.y || (y == rhs.y && x < rhs.x));
   }
 
+  inline bool operator==(const TPoint& rhs) const {
+    return (x == rhs.x && y == rhs.y);
+  }
+
   inline bool is_upper() const {
     return (y > eps || (abs(y) <= eps && x > eps));
   }

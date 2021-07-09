@@ -172,12 +172,12 @@ int main(int argc, char** argv) {
   }
   vector<int> order(nv);
   iota(order.begin(), order.end(), 0);
-//  order = {1, 3, 4, 0, 2};
+//  order = {0, 1, 3, 2, 4};
   vector<vector<bool>> has_edge(nv, vector<bool>(nv, false));
   for (auto& e : edges) {
     has_edge[e.first][e.second] = has_edge[e.second][e.first] = true;
   }
-  vector<Point> v(nv);
+  vector<Point> v(nv, Point(-1, -1));
   int best_score = (int) 1e9;
   auto best_v = v;
   function<void(int)> Dfs = [&](int ii) {
@@ -189,13 +189,26 @@ int main(int argc, char** argv) {
           best_v = v;
           debug(best_v);
           debug(score, best_score);
+          ofstream out("../outputs/" + to_string(xid) + ".ans");
+          out << best_v.size() << '\n';
+          for (auto& p : best_v) {
+            out << p.x << " " << p.y << '\n';
+          }
+          out.close();
         }
       }
       return;
     }
+    if (v[0] == Point(0, 31)) {
+//      debug(ii, v);
+    }
     for (int x = 0; x <= max_x; x++) {
       for (int y = 0; y <= max_y; y++) {
+        if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
+//          debug(ii, v, x, y);
+        }
         if (E.c.IsPointInside(Point(x, y))) {
+//          debug("hi");
           v[order[ii]] = Point(x, y);
           bool ok = true;
           for (int jj = 0; jj < ii; jj++) {
@@ -206,10 +219,14 @@ int main(int argc, char** argv) {
                 ok = false;
                 break;
               }
-              int old_len = (v[i] - v[j]).abs2();
-              int new_len = (vertices[i] - vertices[j]).abs2();
+              int new_len = (v[i] - v[j]).abs2();
+              int old_len = (vertices[i] - vertices[j]).abs2();
               long long num = abs(new_len - old_len);
               long long den = old_len;
+              if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
+//                debug(new_len, old_len);
+//                debug(num * EPS_COEF, eps * den);
+              }
               if (num * EPS_COEF > eps * den) {
                 ok = false;
                 break;
@@ -219,6 +236,7 @@ int main(int argc, char** argv) {
           if (ok) {
             Dfs(ii + 1);
           }
+          v[order[ii]] = Point(-1, -1);
         }
       }
     }
