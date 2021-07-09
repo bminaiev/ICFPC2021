@@ -104,7 +104,7 @@ fn conv_input(t: &Input) -> Task {
 }
 
 fn main() {
-    const TASK: usize = 2;
+    const TASK: usize = 57;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     for problem_id in TASK..=TASK {
         println!("Start test {}", problem_id);
