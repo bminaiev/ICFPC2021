@@ -31,4 +31,13 @@ impl Random {
             state: seed,
         }
     }
+
+    pub fn gen_perm(&mut self, n: usize) -> Vec<usize> {
+        let mut res: Vec<_> = (0..n).collect();
+        for i in 1..n {
+            let pos = self.next_in_range(0, i + 1);
+            res.swap(i, pos);
+        }
+        return res;
+    }
 }

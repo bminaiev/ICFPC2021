@@ -93,7 +93,6 @@ fn get_old_score(test: usize) -> i64 {
     let f = File::open(path).unwrap();
     let mut s = String::new();
     BufReader::new(f).read_to_string(&mut s).unwrap();
-    println!("{}", s.trim());
     s.trim().parse().unwrap()
 }
 
