@@ -118,8 +118,8 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_S) { saveSolution(); }
         if (ev.key() == Qt::Key_A) { loadSolution(); }
         if (ev.key() == Qt::Key_I) { makeInt(); }
-        if (ev.key() == Qt::Key_N) { test_id--; if (test_id == 0) test_id = 59; readInput(); }
-        if (ev.key() == Qt::Key_M) { test_id++; if (test_id == 60) test_id = 1; readInput(); }
+        if (ev.key() == Qt::Key_O) { test_id--; if (test_id == 0) test_id = 59; readInput(); }
+        if (ev.key() == Qt::Key_P) { test_id++; if (test_id == 60) test_id = 1; readInput(); }
         if (ev.key() == Qt::Key_1) { doIter(); }
         if (ev.key() == Qt::Key_2) { spread(); }
         if (ev.key() == Qt::Key_3) { doPull(); }
