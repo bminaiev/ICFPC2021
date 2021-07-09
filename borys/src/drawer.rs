@@ -7,6 +7,7 @@ extern crate imageproc;
 use image::{Rgb, RgbImage};
 use imageproc::drawing::draw_line_segment_mut;
 use self::imageproc::rect::Rect;
+use rusttype::Font;
 
 const C: i32 = 8;
 
@@ -39,6 +40,9 @@ pub fn save_test(task: &Task, solution: &Solution, path: &str) {
         let p2 = solution.vertices[e.to];
         draw_line(&mut img, &p1, &p2, RED);
     }
+    let font_data: &[u8] = include_bytes!("../assets/times.ttf");
+    let font: Font<'static> = Font::try_from_bytes(font_data).unwrap();
+    imageproc::drawing::draw_text_mut(&mut img, BLACK, 0, 0, rusttype::Scale::uniform(20.0), &font, &format!("dislikes: {}", solution.dislikes));
 
     img.save(path).unwrap();
 }
