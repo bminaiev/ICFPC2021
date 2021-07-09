@@ -104,9 +104,14 @@ fn conv_input(t: &Input) -> Task {
 }
 
 fn main() {
-    const TASK: usize = 57;
+    // const TASK: usize = 58;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
-    for problem_id in TASK..=TASK {
+    let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54]).collect();
+    for problem_id in 1..=59 {
+        if not_interesting_tests.contains(&problem_id) {
+            println!("Skip test: {}", problem_id);
+            continue;
+        }
         println!("Start test {}", problem_id);
         let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
         let reader = BufReader::new(file);

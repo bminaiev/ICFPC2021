@@ -2,6 +2,7 @@ use crate::*;
 use crate::helper::*;
 use crate::rand::Random;
 use std::fs;
+use std::collections::BTreeSet;
 
 pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random) -> Solution {
     let n = t.fig.len();
@@ -27,7 +28,6 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
         let mut cur_positions: Vec<_> = solution.vertices.iter().map(|x| Some(x.clone())).collect();
         for &big_moves in [false, true].iter() {
             for &id in perm.iter() {
-                let edges: Vec<_> = t.edges.iter().filter(|e| e.fr == id || e.to == id).cloned().collect();
                 let p = solution.vertices[id];
                 let from_x = if big_moves { 0 } else { p.x - 1 };
                 let to_x = if big_moves { helper.max_c } else { p.x + 2 };
@@ -36,25 +36,53 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
 
                 for nx in from_x..to_x {
                     for ny in from_y..to_y {
-                        let np = Point { x: nx, y: ny };
+                        let old_cur_positions = cur_positions.clone();
+                        let shift_x = nx - p.x;
+                        let shift_y = ny - p.y;
+                        let np = Point { x: p.x + shift_x, y: p.y + shift_y };
                         cur_positions[id] = Some(np);
                         let mut need_rev_back = true;
-                        if helper.is_valid_position(id, &np, &edges, &cur_positions, t) {
-                            let vertices: Vec<_> = cur_positions.iter().map(|x| x.unwrap()).collect();
-                            let new_sol = Solution::create(vertices, t);
-                            // println!("valid, check score: {}", new_sol.dislikes);
-                            if new_sol.dislikes < solution.dislikes {
-                                solution = new_sol;
-                                cur_positions[id] = Some(np);
-                                found = true;
-                                need_rev_back = false;
-                                println!("new score: {}, big move: {}", solution.dislikes, big_moves);
-                                iter += 1;
-                                drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
+                        let mut changed_points = BTreeSet::new();
+                        changed_points.insert(id);
+                        let mut moved_points = 0;
+                        loop {
+                            let bad_edge = helper.get_bad_edge(&cur_positions, &t);
+                            if big_moves && bad_edge.is_some() {
+                                break;
+                            }
+                            moved_points += 1;
+                            assert!(moved_points <= t.fig.len() + 2);
+                            match bad_edge {
+                                None => {
+                                    let vertices: Vec<_> = cur_positions.iter().map(|x| x.unwrap()).collect();
+                                    let new_sol = Solution::create(vertices, t);
+                                    if new_sol.dislikes < solution.dislikes {
+                                        solution = new_sol;
+                                        found = true;
+                                        need_rev_back = false;
+                                        println!("new score: {}, big move: {}", solution.dislikes, big_moves);
+                                        iter += 1;
+                                        drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
+                                    }
+                                    break;
+                                }
+                                Some(edge) => {
+                                    if !changed_points.contains(&edge.fr) {
+                                        let fr_p = cur_positions[edge.fr].unwrap();
+                                        cur_positions[edge.fr] = Some(Point { x: fr_p.x + shift_x, y: fr_p.y + shift_y });
+                                        changed_points.insert(edge.fr);
+                                    } else if !changed_points.contains(&edge.to) {
+                                        let to_p = cur_positions[edge.to].unwrap();
+                                        cur_positions[edge.to] = Some(Point { x: to_p.x + shift_x, y: to_p.y + shift_y });
+                                        changed_points.insert(edge.to);
+                                    } else {
+                                        break;
+                                    }
+                                }
                             }
                         }
                         if need_rev_back {
-                            cur_positions[id] = Some(p);
+                            cur_positions = old_cur_positions;
                         }
                     }
                 }

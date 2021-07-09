@@ -142,6 +142,27 @@ impl Helper {
         return true;
     }
 
+    pub fn get_bad_edge(&self, cur_positions: &[Option<Point>], t: &Task) -> Option<Edge> {
+        for edge in t.edges.iter() {
+            let p = cur_positions[edge.fr].unwrap();
+            let v = edge.fr;
+            let another = edge.to;
+            let another_p = cur_positions[another].unwrap();
+            if !self.is_edge_inside(&p, &another_p) {
+                return Some(edge.clone());
+            }
+            let init_d2 = t.fig[v].d2(&t.fig[another]);
+            let cur_d2 = p.d2(&another_p);
+            let delta = (init_d2 - cur_d2).abs();
+            // delta / init_d2 <= eps / 10^6
+            // delta * 10^6 <= eps * init_d2
+            if delta * 1_000_000 > t.epsilon * init_d2 {
+                return Some(edge.clone());
+            }
+        }
+        return None;
+    }
+
     // 0 - good
     // 1 - bad
     pub fn edge_score(&self, t: &Task, v1: usize, v2: usize, p1: &Point, p2: &Point) -> f64 {
