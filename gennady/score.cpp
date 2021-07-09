@@ -57,6 +57,12 @@ int main(int argc, char** argv) {
     cerr << "output " << x << ".ans doesn't exist (check relative path?)" << '\n';
     return 0;
   }
+  int new_nv;
+  out >> new_nv;
+  if (nv != new_nv) {
+    cerr << "wrong number of points: expected " << nv << ", found " << new_nv << '\n';
+    return 0;
+  }
   vector<Point> res(nv);
   for (int i = 0; i < nv; i++) {
     out >> res[i].x >> res[i].y;
