@@ -10,6 +10,7 @@ class Evaluator {
     const int EPS_COEF = 1000000;
 
     Checker c;
+    std::vector<Point> p;
     std::vector<Point> v;
     std::vector<std::pair<int, int>> e;
     int eps;
@@ -18,6 +19,7 @@ class Evaluator {
 
     Evaluator(std::vector<Point> poly, std::vector<Point> vertices, std::vector<std::pair<int, int>> edges, int epsilon) {
       c = Checker(poly);
+      p = poly;
       v = vertices;
       e = edges;
       eps = epsilon;
@@ -54,10 +56,10 @@ class Evaluator {
         }
       }
       long long score = 0;
-      for (auto& h : v) {
+      for (auto& h : p) {
         int cur = (int) 1e9;
-        for (auto& p : pts) {
-          cur = std::min(cur, (p - h).abs2());
+        for (auto& q : pts) {
+          cur = std::min(cur, (q - h).abs2());
         }
         score += cur;
       }
