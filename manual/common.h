@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <array>
 #include <thread>
 #include <set>
@@ -81,10 +82,11 @@ void readInput() {
 
 void printSolution() {
     const string fname = "../outputs/" + test_id + ".ans";
-    freopen(fname.c_str(), "w", stdout);
-    cout << N << endl;
+    ofstream fout(fname);
+    fout << N << endl;
     for (const auto& p : points)
-        cout << p.x << " " << p.y << endl;
+        fout << p.x << " " << p.y << endl;
+    fout.close();
 
     cerr << "saved to " << fname << endl;   
 }

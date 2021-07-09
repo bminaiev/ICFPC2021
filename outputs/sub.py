@@ -1,4 +1,5 @@
 import requests as r
+import json
 import sys
 import os
 
@@ -10,49 +11,42 @@ if len(sys.argv) != 2:
 
 test = sys.argv[1]
 try:
-  test = int(test)
+  gena_wants_to_be_sure_test_id_is_int = int(test)
 except:
   print('test-id must be an integer')
   exit()
 
-if os.name == 'nt':
-  code = os.system('call "../gennady/score.exe" ' + str(test))
-  if code == 1:
-    exit()
-
+cmd = ('call "../gennady/score.exe" ' if os.name == 'nt' else '../gennady/score ') + test
 try:
-  f = open(str(test) + '.ans', 'r')
+  code = os.system(cmd)
 except:
-  print('file ' + str(test) + '.ans not found')
+  print('can not check file')
   exit()
 
-ans = '{"vertices":['
+if code != 0:
+  exit()
 
-expected = -1
-cnt = 0
-for line in f.readlines():
-  line = list(map(int, line.strip().split()))
+points = []
+with open(test + '.ans') as f:
+  expected = -1
+  for line in f:
+    line = list(map(int, line.strip().split()))
 
-  if len(line) == 1:
-    expected = line[0]
-  
-  if len(line) == 2:
-    if cnt > 0:
-      ans += ','
-    cnt += 1
-    ans += '[' + str(line[0]) + ',' + str(line[1]) + ']'
+    if len(line) == 1:
+      expected = line[0]
 
-f.close()
+    if len(line) == 2:
+      points.append(line)
 
 if expected < 2:
   print('expected less than 2 points (maybe N is missing in the first line?)')
   exit()
-  
-if cnt != expected:
-  print('wrong number of points: expected ' + str(expected) + ', found ' + str(cnt))
+
+if len(points) != expected:
+  print('wrong number of points: expected {0}, found {1}'.format(expected, len(points)))
   exit()
 
-ans += ']}'
+ans = json.dumps({'vertices': points})
 print('submitting ' + ans)
 
 s = r.Session()

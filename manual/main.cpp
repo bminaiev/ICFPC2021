@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     v.setSize(1800, 1040);
     v.setOnKeyPress([](const QKeyEvent& ev) {
         if (ev.key() == Qt::Key_Escape) { exited = true; }
-        if (ev.key() == Qt::Key_Space) { printSolution(); }
+        if (ev.key() == Qt::Key_S) { printSolution(); }
     });
 
     v.setOnMouseClick([](const QMouseEvent& ev, double sx, double sy, double wx, double wy) {

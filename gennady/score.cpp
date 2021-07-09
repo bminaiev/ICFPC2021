@@ -1,6 +1,6 @@
 /**
  *    author:  tourist
- *    created: 09.07.2021 17:21:07       
+ *    created: 09.07.2021 17:21:07
 **/
 #include <vector>
 #include <cassert>
@@ -22,7 +22,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-
 #include "evaluator.h"
 
 using namespace std;
