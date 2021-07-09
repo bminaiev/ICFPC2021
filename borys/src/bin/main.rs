@@ -35,7 +35,7 @@ fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54]).collect();
 
-    let mut rnd = Random::new(777881);
+    let mut rnd = Random::new(7778481);
     for problem_id in TASK..=TASK {
         if not_interesting_tests.contains(&problem_id) {
             println!("Skip test: {}", problem_id);
