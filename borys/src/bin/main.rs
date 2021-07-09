@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::BufReader;
-use borys::{Input, PointInput, OutputFormat, drawer, Solution, Edge};
+use borys::{Input, PointInput, OutputFormat, drawer, Solution, Edge, conv_input, save_solution};
 use borys::rand::Random;
 use std::cmp::{max, min};
 use std::mem::swap;
@@ -8,10 +8,6 @@ use std::io::{Write};
 
 use borys::{Point, Task, local_optimizer};
 use borys::helper::Helper;
-
-fn conv_points(pts: &[PointInput]) -> Vec<Point> {
-    pts.iter().map(|p| Point { x: p[0], y: p[1] }).collect()
-}
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
 struct NeedToPut {
@@ -96,12 +92,7 @@ fn solve(t: &Task) -> Option<Solution> {
     }
 }
 
-fn conv_input(t: &Input) -> Task {
-    let hole = conv_points(&t.hole);
-    let fig = conv_points(&t.figure.vertices);
-    let edges: Vec<_> = t.figure.edges.iter().map(|e| Edge { fr: e[0], to: e[1] }).collect();
-    return Task { hole, fig, edges, epsilon: t.epsilon };
-}
+
 
 fn main() {
     // const TASK: usize = 58;
@@ -125,14 +116,7 @@ fn main() {
                 writeln!(f_all, "{}: no solution", problem_id).unwrap();
             }
             Some(solution) => {
-                let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
-                let out = OutputFormat { vertices };
-                let mut f = File::create(format!("outputs/{}.ans", problem_id)).unwrap();
-                writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
-                let mut f_score = File::create(format!("outputs/{}.score", problem_id)).unwrap();
-                writeln!(f_score, "{}", solution.dislikes).unwrap();
-                writeln!(f_all, "{}: {}", problem_id, solution.dislikes).unwrap();
-                drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", problem_id));
+                save_solution(&solution, problem_id, &mut f_all, &task);
             }
         }
         f_all.flush().unwrap();

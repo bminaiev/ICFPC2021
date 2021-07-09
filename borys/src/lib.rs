@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
+use std::fs::File;
+use std::io::{Write};
+
 
 pub type PointInput = [i32; 2];
 
@@ -68,6 +71,30 @@ pub struct Task {
     pub fig: Vec<Point>,
     pub edges: Vec<Edge>,
     pub epsilon: i64,
+}
+
+
+fn conv_points(pts: &[PointInput]) -> Vec<Point> {
+    pts.iter().map(|p| Point { x: p[0], y: p[1] }).collect()
+}
+
+pub fn conv_input(t: &Input) -> Task {
+    let hole = conv_points(&t.hole);
+    let fig = conv_points(&t.figure.vertices);
+    let edges: Vec<_> = t.figure.edges.iter().map(|e| Edge { fr: e[0], to: e[1] }).collect();
+    return Task { hole, fig, edges, epsilon: t.epsilon };
+}
+
+pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
+    let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
+    let out = OutputFormat { vertices };
+    let mut f = File::create(format!("outputs/{}.ans", test)).unwrap();
+    writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
+    let mut f_score = File::create(format!("outputs/{}.score", test)).unwrap();
+    writeln!(f_score, "{}", solution.dislikes).unwrap();
+    writeln!(f_all, "{}: {}", test, solution.dislikes).unwrap();
+    f_all.flush();
+    drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", test));
 }
 
 pub mod rand;
