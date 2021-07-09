@@ -20,6 +20,11 @@ except:
   print('file ' + str(test) + '.ans not found')
   exit()
 
+print('submitting ' + output)
+if output[0] != '{':
+  print('expected json to submit, are you sure?')
+  exit()
+
 s = r.Session()
 r = s.post('https://poses.live/api/problems/' + str(test) + '/solutions', headers={'Authorization': 'Bearer ' + apikey}, data=output)
 print(r.content)

@@ -4,7 +4,7 @@ import sys
 apikey = 'fbb4e890-43a5-4864-92be-d31513e47acd'
 
 if len(sys.argv) != 2:
-  print('usage: python submit.py [test-id]')
+  print('usage: python sub.py [test-id]')
   exit()
 
 test = sys.argv[1]
