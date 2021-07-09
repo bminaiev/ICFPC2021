@@ -1,3 +1,8 @@
+#ifndef _POINT_H_
+#define _POINT_H_
+
+#include <string>
+
 template <typename T>
 struct TPoint {
   T x;
@@ -48,10 +53,23 @@ struct TPoint {
   }
 };
 
-using Point = TPoint<long long>;
+using Point = TPoint<int>;
 //using Point = TPoint<long double>;
 
+bool LiesOnSegment(Point a, Point b, Point p) {
+  if (vmul(b - a, p - a) == 0) {
+    if (smul(b - a, p - a) >= 0) {
+      if (smul(a - b, p - b) >= 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 template <typename T>
-string to_string(const TPoint<T>& p) {
+std::string to_string(const TPoint<T>& p) {
   return "(" + to_string(p.x) + ", " + to_string(p.y) + ")";
 }
+
+#endif
