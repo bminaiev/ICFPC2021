@@ -11,8 +11,7 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
     println!("start local optimizations.. eps = {}, cur score = {}", t.epsilon, solution.dislikes);
     let mut iter = 0;
     let path = "process";
-    fs::remove_dir_all(path).unwrap();
-    fs::create_dir(path).unwrap();
+    drawer::reset();
     drawer::save_test(t, &solution, &format!("{}/{:04}.png", path, iter));
     let mut small_shifts = vec![];
     for dx in -1..=1 {

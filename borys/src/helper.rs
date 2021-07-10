@@ -8,6 +8,7 @@ pub struct Helper {
     hole_and_first: Vec<Point>,
     pub max_c: i32,
     pub shifts_per_edge: Vec<Vec<Shift>>,
+    pub max_dist2: Vec<Vec<i64>>,
 }
 
 
@@ -134,7 +135,36 @@ impl Helper {
             }
             shifts_per_edge.push(cur_shifts);
         }
-        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c, shifts_per_edge }
+        let mut min_dist = vec![vec![std::f64::MAX / 100.0; t.fig.len()]; t.fig.len()];
+        for i in 0..t.fig.len() {
+            min_dist[i][i] = 0.0;
+        }
+        for e in t.edges.iter() {
+            let d2 = t.fig[e.fr].d2(&t.fig[e.to]) as f64;
+            let d2 = d2 * (1.0 + t.epsilon as f64 / 1000000.0);
+            let min_d = d2.sqrt() + 1.0;
+            if min_d < min_dist[e.fr][e.to] {
+                min_dist[e.fr][e.to] = min_d;
+                min_dist[e.fr][e.to] = min_d;
+            }
+        }
+        for i in 0..t.fig.len() {
+            for j in 0..t.fig.len() {
+                for k in 0..t.fig.len() {
+                    let through_i = min_dist[j][i] + min_dist[i][k];
+                    if through_i < min_dist[j][k] {
+                        min_dist[j][k] = through_i;
+                    }
+                }
+            }
+        }
+        let mut max_dist2 = vec![vec![0; t.fig.len()]; t.fig.len()];
+        for i in 0..t.fig.len() {
+            for j in 0..t.fig.len() {
+                max_dist2[i][j] = min_dist[i][j].powf(2.0) as i64;
+            }
+        }
+        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c, shifts_per_edge, max_dist2 }
     }
 
     pub fn is_valid_position(&self, v: usize, p: &Point, edges: &[Edge], cur_positions: &[Option<Point>], t: &Task) -> bool {
@@ -154,6 +184,18 @@ impl Helper {
             // delta * 10^6 <= eps * init_d2
             if delta * 1_000_000 > t.epsilon * init_d2 {
                 return false;
+            }
+        }
+        for (an_id, pos) in cur_positions.iter().enumerate() {
+            match pos {
+                None => {}
+                Some(an_pos) => {
+                    let d2 = p.d2(an_pos);
+                    let expected_max_d2 = self.max_dist2[v][an_id];
+                    if d2 >= expected_max_d2 {
+                        return false;
+                    }
+                }
             }
         }
         return true;

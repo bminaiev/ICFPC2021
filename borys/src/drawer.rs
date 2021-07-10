@@ -7,6 +7,7 @@ use image::{Rgb, RgbImage};
 use imageproc::drawing::draw_line_segment_mut;
 use self::imageproc::rect::Rect;
 use rusttype::Font;
+use std::fs;
 
 const C: i32 = 8;
 
@@ -32,6 +33,12 @@ fn draw_line(img: &mut RgbImage, p1: &Point, p2: &Point, color: Rgb<u8>) {
     );
 }
 
+pub fn reset() {
+    let path = "process";
+    fs::remove_dir_all(path).unwrap();
+    fs::create_dir(path).unwrap();
+}
+
 pub fn save_test(task: &Task, solution: &Solution, path: &str) {
     let helper = Helper::create(task);
 
@@ -55,7 +62,9 @@ pub fn save_test(task: &Task, solution: &Solution, path: &str) {
         let p2 = solution.vertices[e.to];
         let score = helper.edge_score(task, e.fr, e.to, &p1, &p2);
         let color = color_inside(GREEN, RED, score);
-        draw_line(&mut img, &p1, &p2, color);
+        if p1.ok() && p2.ok() {
+            draw_line(&mut img, &p1, &p2, color);
+        }
     }
     let font_data: &[u8] = include_bytes!("../assets/times.ttf");
     let font: Font<'static> = Font::try_from_bytes(font_data).unwrap();

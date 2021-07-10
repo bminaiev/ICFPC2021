@@ -78,6 +78,10 @@ impl Point {
         let dy = (self.y - another.y) as i64;
         return dx * dx + dy * dy;
     }
+
+    pub fn ok(&self) -> bool {
+        return self.x >= 0 && self.y >= 0;
+    }
 }
 
 #[derive(Copy, Clone)]

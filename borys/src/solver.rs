@@ -7,7 +7,9 @@ struct NeedToPut {
     v: usize,
 }
 
-fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, rnd: &mut Random) -> Option<Solution> {
+const DRAW_PICTURES: bool = false;
+
+fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, rnd: &mut Random, depth: usize) -> Option<Solution> {
     let mut need_to_put = vec![];
     for i in 0..cur_positions.len() {
         if cur_positions[i].is_none() {
@@ -68,11 +70,34 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
         }
     }
     if possible_positions.is_empty() {
+        println!("failed on {} / {}", depth, t.fig.len());
+        if DRAW_PICTURES
+        {
+            cur_positions[v_to_put] = Some(Point { x: 0, y: 0 });
+            let vertices = cur_positions.iter().map(|p| match p {
+                None => Point { x: -1, y: -1 },
+                Some(p) => *p
+            }).collect();
+            let solution = Solution::create(vertices, t, helper);
+            drawer::save_test(t, &solution, &format!("process/{:04}.png", depth));
+            cur_positions[v_to_put] = None;
+        }
+
         return None;
     }
     let p = possible_positions[rnd.next_in_range(0, possible_positions.len())];
     cur_positions[v_to_put] = Some(p);
-    return match solve_rec(t, helper, cur_positions, rnd) {
+    if DRAW_PICTURES
+    {
+        let vertices = cur_positions.iter().map(|p| match p {
+            None => Point { x: -1, y: -1 },
+            Some(p) => *p
+        }).collect();
+        let solution = Solution::create(vertices, t, helper);
+        drawer::save_test(t, &solution, &format!("process/{:04}.png", depth));
+    }
+
+    return match solve_rec(t, helper, cur_positions, rnd, depth + 1) {
         None => {
             cur_positions[v_to_put] = None;
             None
@@ -136,7 +161,7 @@ pub fn not_local_optimize(t: &Task, helper: &Helper, rnd: &mut Random, solution:
             for &v in to_delete.iter() {
                 cur_positions[v] = None;
             }
-            match solve_rec(t, helper, &mut cur_positions, rnd) {
+            match solve_rec(t, helper, &mut cur_positions, rnd, 0) {
                 None => {
                     continue;
                 }
@@ -165,7 +190,8 @@ pub fn solve_with_helper(t: &Task, helper: &Helper, rnd: &mut Random) -> Option<
     // }
 
     for it in 0..MAX_ITERS {
-        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd);
+        drawer::reset();
+        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd, 0);
         if solution.is_some() {
             println!("wow!!! score = {}", solution.clone().unwrap().dislikes);
             return solution;
