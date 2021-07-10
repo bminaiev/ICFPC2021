@@ -117,6 +117,10 @@ impl Point {
     pub fn ok(&self) -> bool {
         return self.x >= 0 && self.y >= 0;
     }
+
+    pub fn shift(self, shift: &Shift) -> Self {
+        Self { x: self.x + shift.dx, y: self.y + shift.dy }
+    }
 }
 
 #[derive(Copy, Clone)]

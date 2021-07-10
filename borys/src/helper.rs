@@ -252,4 +252,11 @@ impl Helper {
             return res;
         }
     }
+
+    pub fn is_valid_edge(&self, t: &Task, v1: usize, v2: usize, p1: &Point, p2: &Point) -> bool {
+        if !self.is_edge_inside(p1, p2) {
+            return false;
+        }
+        return self.edge_score(t, v1, v2, p1, p2) <= 1.0;
+    }
 }

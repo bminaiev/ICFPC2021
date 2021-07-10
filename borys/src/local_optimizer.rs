@@ -111,13 +111,14 @@ pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd:
                                     match viz {
                                         None => {}
                                         Some(viz) => if generation % 20 == 0 {
-                                            let events = Visualizer::render(viz, t, helper, &solution, generation);
+                                            let events = Visualizer::render(viz, t, helper, &solution, generation, None);
                                             for e in events.iter() {
                                                 match e {
                                                     UserEvent::IncreaseChangeProb => {
                                                         println!("Update change prob!");
                                                         pr_change += 0.1;
                                                     }
+                                                    _ => {}
                                                 }
                                             }
                                         },

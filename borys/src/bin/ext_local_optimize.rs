@@ -129,14 +129,14 @@ impl Scanner {
  *************************************************/
 
 
-const LOAD_MY: bool = true;
+const LOAD_MY: bool = false;
 
 pub fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
 
-    let outputs_suffix = ""; // "_romka"
+    let outputs_suffix = "_romka"; // "_romka"
 
-    const TEST: usize = 85;
+    const TEST: usize = 10;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let mut vertices: Vec<_> = if LOAD_MY {
@@ -167,7 +167,7 @@ pub fn main() {
         let mut viz = None;// Some(Visualizer::create(&helper, &ttf_context));
 
 
-        let mut rnd = Random::new(45444);
+        let mut rnd = Random::new(452444);
 
         loop {
             let initial_sol = Solution::create(vertices.clone(), &task, &helper);

@@ -1,5 +1,5 @@
 use sdl2::pixels::Color;
-use crate::{Task, Solution, Point};
+use crate::{Task, Solution, Point, Shift};
 use crate::helper::Helper;
 use sdl2::render::{WindowCanvas, Canvas, TextureQuery};
 use sdl2::event::Event;
@@ -15,19 +15,24 @@ pub struct Visualizer<'ttf> {
 }
 
 
-const ZOOM: i32 = 5;
+const ZOOM: i32 = 10;
 
 fn color_inside(from: Color, to: Color, mut part: f64) -> Color {
+    // if part > 1.0 {
+    //     part = 1.0;
+    // }
+    // if part < 0.0 {
+    //     part = 0.0;
+    // }
+    // let mid = |x: u8, y: u8| -> u8 {
+    //     ((x as f64) * (1.0 - part) + (y as f64) * part) as u8
+    // };
+    // Color::RGB(mid(from.r, to.r), mid(from.g, to.g), mid(from.b, to.b))
     if part > 1.0 {
-        part = 1.0;
+        to
+    } else {
+        from
     }
-    if part < 0.0 {
-        part = 0.0;
-    }
-    let mid = |x: u8, y: u8| -> u8 {
-        ((x as f64) * (1.0 - part) + (y as f64) * part) as u8
-    };
-    Color::RGB(mid(from.r, to.r), mid(from.g, to.g), mid(from.b, to.b))
 }
 
 fn calc_sum_errors(task: &Task, helper: &Helper, solution: &Solution) -> f64 {
@@ -42,6 +47,22 @@ const GREY: Color = Color::RGB(222u8, 222u8, 222u8);
 
 pub enum UserEvent {
     IncreaseChangeProb,
+    MouseMoved(i32, i32),
+    CloseApp,
+    Selected(usize),
+    Shift(Shift),
+}
+
+pub struct AdditionalState {
+    pub mouse_x: i32,
+    pub mouse_y: i32,
+    pub selected: Option<usize>,
+}
+
+impl AdditionalState {
+    pub fn create() -> Self {
+        Self { mouse_x: 0, mouse_y: 0, selected: None }
+    }
 }
 
 impl<'a> Visualizer<'a> {
@@ -68,7 +89,7 @@ impl<'a> Visualizer<'a> {
         sdl2::rect::Point::new(p.x * ZOOM, p.y * ZOOM)
     }
 
-    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64) -> Vec<UserEvent> {
+    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64, state: Option<&AdditionalState>) -> Vec<UserEvent> {
         self.canvas.set_draw_color(Color::WHITE);
         self.canvas.clear();
 
@@ -108,16 +129,86 @@ impl<'a> Visualizer<'a> {
         Self::print_text(&mut self.font, &mut self.canvas, &format!("generation: {}", generation), Y_SHIFT * 3);
         Self::print_text(&mut self.font, &mut self.canvas, &format!("crossed edges: {}", solution.crossed_edges), Y_SHIFT * 4);
 
+        let closest_point = |x: i32, y: i32| {
+            let mut closest_point = 0;
+            let mut best_d2 = std::i32::MAX;
+            for v in 0..solution.vertices.len() {
+                let p = Self::conv_point(&solution.vertices[v]);
+                let dx2 = (p.x - x) * (p.x - x);
+                let dy2 = (p.y - y) * (p.y - y);
+                let d2 = dx2 + dy2;
+                if d2 < best_d2 {
+                    best_d2 = d2;
+                    closest_point = v;
+                }
+            }
+            if best_d2 < 100 * 100 {
+                return Some(closest_point);
+            }
+            return None;
+        };
+
+        match state {
+            None => {}
+            Some(state) => {
+                Self::print_text(&mut self.font, &mut self.canvas, &format!("mouse: {} {}", state.mouse_x, state.mouse_y), Y_SHIFT * 5);
+                match closest_point(state.mouse_x, state.mouse_y) {
+                    None => {}
+                    Some(closest_point) => {
+                        let p = Self::conv_point(&solution.vertices[closest_point]);
+                        self.canvas.set_draw_color(Color::BLACK);
+                        let s = 3i32;
+                        self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
+                    }
+                }
+                match state.selected {
+                    None => {}
+                    Some(v) => {
+                        let p = Self::conv_point(&solution.vertices[v]);
+                        self.canvas.set_draw_color(Color::RED);
+                        let s = 3i32;
+                        self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
+                    }
+                }
+            }
+        }
+
+
         self.canvas.present();
         let mut events = vec![];
         for event in self.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } |
                 Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-                    events.push(UserEvent::IncreaseChangeProb)
+                    events.push(UserEvent::IncreaseChangeProb);
+                    events.push(UserEvent::Shift(Shift { dx: 1, dy: 0 }));
+                }
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    events.push(UserEvent::Shift(Shift { dx: -1, dy: 0 }));
+                }
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    events.push(UserEvent::Shift(Shift { dx: 0, dy: 1 }));
+                }
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    events.push(UserEvent::Shift(Shift { dx: 0, dy: -1 }));
+                }
+                Event::MouseMotion {
+                    x,
+                    y,
+                    ..
+                } => {
+                    events.push(UserEvent::MouseMoved(x, y))
                 }
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    assert!(false);
+                    events.push(UserEvent::CloseApp)
+                }
+                Event::MouseButtonUp { x, y, .. } => {
+                    match closest_point(x, y) {
+                        None => {}
+                        Some(p) => {
+                            events.push(UserEvent::Selected(p));
+                        }
+                    }
                 }
                 _ => {}
             }
