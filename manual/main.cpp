@@ -277,6 +277,32 @@ void doIter() {
     }
 }
 
+void doIterWithMt() {
+    vector<PointD> forces(N);
+    
+    for (const Edge& e : edges) {
+        double cd = (points[e.from] - points[e.to]).abs2();
+        if (cd > e.D) {
+            double f = (sqrt(cd) - sqrt(e.D)) / sqrt(e.D) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] + v;
+            forces[e.to] = forces[e.to] - v;
+        } else {
+            double f = (sqrt(e.D) - sqrt(cd)) / (sqrt(cd) + 1) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] - v;
+            forces[e.to] = forces[e.to] + v;
+        }
+    }
+
+    forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
+        if (mt[i] != -1) forces[i] = PointD(0, 0);
+        points[i] = points[i] + forces[i];
+    }
+}
+
 void doRepulse() {
     vector<PointD> forces(N);
     
@@ -406,9 +432,11 @@ void doAvg() {
 void doShake() {
     if (capturedPointIndex == -1) return;
     for (int v : g[capturedPointIndex]) {
-        int cd = (points[v] - points[capturedPointIndex]).abs() + 1;
+        if (mt[v] != -1) continue;
+        int cd = (points[v] - points[capturedPointIndex]).abs();
+        cd = cd / 2 + 1;
         forn(it, 100) {
-            Point np(points[v].x + rand() % cd, points[v].y + rand() % cd);
+            Point np(points[v].x + rand() % cd - rand() % cd, points[v].y + rand() % cd - rand() % cd);
             if (ev.c.IsPointInside(np)) {
                 points[v].x = np.x;
                 points[v].y = np.y;
@@ -455,7 +483,7 @@ void doFix() {
 void doReset() {
     forn(i, N) {
         if (mt[i] != -1) points[i] = hole[mt[i]];
-        else points[i] = PointD(50, 50);
+        else points[i] = PointD(70, 70);
     }
 }
 
@@ -474,6 +502,23 @@ void doBind() {
 
     mt[capturedPointIndex] = bi;
 }
+
+void doBindAll() {
+    forn(cpp, N) {
+        double bd = inf;
+        int bi = -1;
+        forn(i, H) {
+            double cd = (hole[i] - points[cpp]).abs2();
+            if (cd < bd) {
+                bd = cd;
+                bi = i;
+            }
+        }
+
+        mt[cpp] = bd < 27 ? bi : -1;
+    }
+}
+
 
 void doUnbind() {
     if (capturedPointIndex == -1) return;
@@ -501,8 +546,10 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_5) { doReset(); }
         if (ev.key() == Qt::Key_6) { doRepulse(); }
         if (ev.key() == Qt::Key_7) { doShake(); }
+        if (ev.key() == Qt::Key_8) { doIterWithMt(); }
         if (ev.key() == Qt::Key_Z) { check(); }
         if (ev.key() == Qt::Key_B) { doBind(); }
+        if (ev.key() == Qt::Key_M) { doBindAll(); }
         if (ev.key() == Qt::Key_U) { doUnbind(); }
         if (ev.key() == Qt::Key_F) { bruteforce(); }
         if (ev.key() == Qt::Key_G) { doFix(); }

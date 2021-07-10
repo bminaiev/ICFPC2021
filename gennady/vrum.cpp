@@ -172,8 +172,11 @@ int main(int argc, char** argv) {
     max_y = max(max_y, p.y);
   }
   vector<vector<bool>> has_edge(nv, vector<bool>(nv, false));
+  vector<vector<int>> g(nv);
   for (auto& e : edges) {
     has_edge[e.first][e.second] = has_edge[e.second][e.first] = true;
+    g[e.first].push_back(e.second);
+    g[e.second].push_back(e.first);
   }
 
   vector<vector<double>> max_dist(nv, vector<double>(nv, 1e9));
@@ -199,10 +202,74 @@ int main(int argc, char** argv) {
     }
   }
 
+  vector<vector<long long>> ol(nv, vector<long long>(nv, 1e9));
+  for (int i = 0; i < nv; i++)
+    for (int j = 0; j < nv; j++)
+      ol[i][j] = (vertices[i] - vertices[j]).abs2();
+
+  vector<Point> inner;
+  for (int x = 0; x <= max_x; x++) {
+    for (int y = 0; y <= max_y; y++) {
+      if (E.c.IsPointInside(Point(x, y))) {
+        inner.emplace_back(x, y);
+      }
+    }
+  }  
+
+  vector<Point> v(nv, Point(-1, -1));
+  int best_score = (int) 1e9;
+  auto best_v = v;
+  bool found = false;
+
+  vector<int> test(np, -1);
+  ifstream tin("../hints/" + to_string(xid) + ".txt");
+  if (!tin.is_open()) {
+    cerr << "hint for " << xid << "doesn't exist (check relative path?)" << '\n';
+    return 0;
+  }
+  for (int i = 0; i < np; i++) tin >> test[i];
+  debug(test);
+
+  vector<bool> taken(nv, false);
+  for (int i = 0; i < np; i++)
+    if (test[i] != -1) {
+      taken[test[i]] = true;
+      v[test[i]] = poly[i];
+    }
+
+  vector<vector<Point>> oknp(nv);
+  for (int i = 0; i < nv; i++) {
+    if (taken[i]) continue;
+    for (const auto& tp : inner) {
+      bool ok = true;
+      for (size_t jj = 0; jj < g[i].size(); jj++) {
+        int j = g[i][jj];
+        if (v[j].x == -1) continue;
+        if (!E.c.IsSegmentInside(tp, v[j])) {
+          ok = false;
+          break;
+        }
+        int new_len = (tp - v[j]).abs2();
+        int old_len = (vertices[i] - vertices[j]).abs2();
+        long long num = abs(new_len - old_len);
+        long long den = old_len;
+        if (num * EPS_COEF > eps * den) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) oknp[i].push_back(tp);
+    }
+  }
+
   vector<int> order(nv);
+  mt19937 rng(60);
   iota(order.begin(), order.end(), 0);
+  shuffle(order.begin(), order.end(), rng);
+  sort(order.begin(), order.end(), [&](int i, int j) { return taken[i] > taken[j]; });
   debug(nv, np, eps);
   if (nv <= 10) {
+    iota(order.begin(), order.end(), 0);
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
     do {
@@ -225,9 +292,14 @@ int main(int argc, char** argv) {
   } else {
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
-    mt19937 rng(60);
-    for (auto iter = 0; iter < (int) 1e5; iter++) {
-      shuffle(order.begin(), order.end(), rng);
+    for (auto iter = 0; iter < (int)1e7; iter++) {
+      // shuffle(order.begin(), order.end(), rng);
+      int qi = iter % order.size();
+      if (taken[order[qi]]) continue;
+      int qj = rand() % order.size();
+      if (taken[order[qj]]) continue;
+      if (qi == qj) continue;
+      swap(order[qi], order[qj]);
       vector<int> seq(nv, 0);
       for (int i = 0; i < nv; i++) {
         for (int j = 0; j < i; j++) {
@@ -239,6 +311,8 @@ int main(int argc, char** argv) {
       if (seq > best_seq) {
         best_seq = seq;
         best_order = order;
+      } else {
+        swap(order[qi], order[qj]);
       }
     }
     debug(best_order);
@@ -246,17 +320,9 @@ int main(int argc, char** argv) {
     order = best_order;
   }
 
-  vector<Point> v(nv, Point(-1, -1));
-  int best_score = (int) 1e9;
-  auto best_v = v;
-  bool found = false;
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
-    // debug(ii);
-    if (false && ii > 0) {
-        found = true;
-        return;
-    }
+    // cerr << ii << " of " << nv << endl;
     if (ii == nv) {
       int score = (int) E.eval(v);
       if (score != -1) {
@@ -276,70 +342,61 @@ int main(int argc, char** argv) {
       }
       return;
     }
-    if (v[order[ii]].x != -1) {
+    int i = order[ii];
+    if (v[i].x != -1) {
       Dfs(ii + 1);
       return;
     }
-    if (v[0] == Point(0, 31)) {
-//      debug(ii, v);
-    }
-    for (int x = 0; x <= max_x; x++) {
-      for (int y = 0; y <= max_y; y++) {
-        if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
-//          debug(ii, v, x, y);
+    for (size_t qq = 0; qq < oknp[i].size(); qq++) {
+      const Point& pc = oknp[i][qq];
+      v[i] = pc;
+      bool ok = true;      
+      for (size_t jj = 0; jj < g[i].size(); jj++) {
+        int j = g[i][jj];
+        if (v[j].x == -1) continue;
+        if (!E.c.IsSegmentInside(v[i], v[j])) {
+          ok = false;
+          break;
         }
-        if (E.c.IsPointInside(Point(x, y))) {
-//          debug("hi");
-          v[order[ii]] = Point(x, y);
-          bool ok = true;
-          for (int jj = 0; jj < nv; jj++) {
-            if (ii == jj || v[order[jj]].x == -1) {
-              continue;
-            }
-            int i = order[ii];
-            int j = order[jj];
-            if (has_edge[i][j]) {
-              if (!E.c.IsSegmentInside(v[i], v[j])) {
-                ok = false;
-                break;
-              }
-              int new_len = (v[i] - v[j]).abs2();
-              int old_len = (vertices[i] - vertices[j]).abs2();
-              long long num = abs(new_len - old_len);
-              long long den = old_len;
-              if (v[0] == Point(0, 31) && ii == 1 && x == 0 && y == 65) {
-//                debug(new_len, old_len);
-//                debug(num * EPS_COEF, eps * den);
-              }
-              if (num * EPS_COEF > eps * den) {
-                ok = false;
-                break;
-              }
-            }
-          }
-          if (ok) {
-            Dfs(ii + 1);
-          }
-          v[order[ii]] = Point(-1, -1);
+        int new_len = (v[i] - v[j]).abs2();
+        int old_len = ol[i][j];
+        long long num = abs(new_len - old_len);
+        if (num * EPS_COEF > eps * old_len) {
+          ok = false;
+          break;
         }
       }
+
+      for (int jj = 0; jj < nv && ok; jj++) {
+        if (ii == jj || v[order[jj]].x == -1) {
+          continue;
+        }
+        
+        int j = order[jj];
+        auto dist = (v[i] - v[j]).abs2();
+        if (dist > max_dist[i][j] * max_dist[i][j] + 1e-9) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        Dfs(ii + 1);
+      }
+      v[i] = Point(-1, -1);
     }
   };
 
-  vector<int> test(np, -1);
-  ifstream tin("../hints/" + to_string(xid) + ".txt");
-  if (!tin.is_open()) {
-    cerr << "hint for " << xid << "doesn't exist (check relative path?)" << '\n';
-    return 0;
-  }
-  for (int i = 0; i < np; i++) tin >> test[i];
-  debug(test);
-
-  vector<bool> taken(nv, false);
-  for (int i = 0; i < np; i++) if (test[i] != -1) taken[test[i]] = true;
-
   function<void(int)> DfsZero = [&](int ii) {
     if (found) return;
+    // cerr << ii << " of " << np << endl;
+    // if (ii >= 35) {
+    //   ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
+    //   out << v.size() << '\n';
+    //   for (auto& p : v) {
+    //     out << p.x << " " << p.y << '\n';
+    //   }
+    //   out.close();
+    // }
     if (ii == np) {
       debug(v);
       ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
@@ -349,6 +406,10 @@ int main(int argc, char** argv) {
       }
       out.close();
       Dfs(0);
+      return;
+    }
+    if (test[ii] != -1) {
+      DfsZero(ii + 1);
       return;
     }
     for (int i = 0; i < nv; i++) {

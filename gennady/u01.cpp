@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
             vector<int> path(1, j);
             used[j] = true;
             function<void(int, int)> Dfs = [&](int ip, int iv) {
-              if (1.0 * clock() / CLOCKS_PER_SEC > 1.0) return;
+              if (1.0 * clock() / CLOCKS_PER_SEC > 10.0) return;
               if ((int) max_path.size() == np) {
                 return;
               }
@@ -238,23 +238,25 @@ int main(int argc, char** argv) {
                 bool fail = false;
                 for (int i = 0; i < nv; i++) {
                   for (int j = i + 1; j < nv; j++) {
-                    if (v[i].x != -1 && v[j].x != -1 && has_edge[i][j]) {
-                      if (!(E.c.IsSegmentInside(v[i], v[j]))) {
-                        fail = true;
-                        break;
-                      }
+                    if (v[i].x != -1 && v[j].x != -1) {
                       int new_len = (v[i] - v[j]).abs2();
+                      if (has_edge[i][j]) {
+                        if (!(E.c.IsSegmentInside(v[i], v[j]))) {
+                          fail = true;
+                          break;
+                        }
+                        int old_len = (vertices[i] - vertices[j]).abs2();
+                        long long num = abs(new_len - old_len);
+                        long long den = old_len;
+                        if (!(num * EPS_COEF <= eps * den)) {
+                          fail = true;
+                          break;
+                        }
+                      }                      
                       if (new_len > max_dist[i][j] * max_dist[i][j] + 1e-9) {
                         fail = true;
                         break;
-                      }
-                      int old_len = (vertices[i] - vertices[j]).abs2();
-                      long long num = abs(new_len - old_len);
-                      long long den = old_len;
-                      if (!(num * EPS_COEF <= eps * den)) {
-                        fail = true;
-                        break;
-                      }
+                      }                      
                     }
                     if (fail) {
                       break;
@@ -284,7 +286,7 @@ int main(int argc, char** argv) {
               }
               int new_len = (poly[ip] - poly[jp]).abs2();
               for (int jv = 0; jv < nv; jv++) {
-                if (!used[jv] && v[jv].x == -1) {
+                if (!used[jv] && v[jv].x == -1 && has_edge[iv][jv]) {
                   int old_len = (vertices[iv] - vertices[jv]).abs2();
                   long long num = abs(new_len - old_len);
                   long long den = old_len;
@@ -304,7 +306,7 @@ int main(int argc, char** argv) {
       }
     }
     debug(np, nv, max_path, max_start);
-    if (max_path.size() <= 3) {
+    if (max_path.size() <= 1) {
       break;
     }
     for (int i = 0; i < (int) max_path.size(); i++) {
@@ -316,6 +318,12 @@ int main(int argc, char** argv) {
   }
  
   debug(v);
+  ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
+  out << v.size() << '\n';
+  for (auto& p : v) {
+    out << p.x << " " << p.y << '\n';
+  }
+  out.close();
 
   for (int i = 0; i < nv; i++) {
     for (int j = i + 1; j < nv; j++) {
@@ -368,11 +376,11 @@ int main(int argc, char** argv) {
     function<void(int)> Dfs = [&](int id) {
       if (id == (int) order.size()) {
         auto score = E.eval(v);
-        debug(score, best_score, order, v);
         if (score < best_score) {
+          debug(score, best_score, order, v);
           best_score = score;
           best_v = v;
-          ofstream out("../outputs/" + to_string(xid) + ".ansu");
+          ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
           out << best_v.size() << '\n';
           for (auto& p : best_v) {
             out << p.x << " " << p.y << '\n';
