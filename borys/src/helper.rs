@@ -76,6 +76,29 @@ impl Helper {
         return true;
     }
 
+    pub fn get_possible_positions(&self, t: &Task, positions: &[Point], v: usize) -> Vec<Point> {
+        let mut res = vec![];
+        for x in 0..self.max_c {
+            for y in 0..self.max_c {
+                let p = Point { x, y };
+                let mut ok = true;
+                for edge in t.edges.iter() {
+                    if edge.fr == v || edge.to == v {
+                        let another = edge.fr + edge.to - v;
+                        if !self.is_valid_edge(t, v, another, &p, &positions[another]) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+                if ok {
+                    res.push(p);
+                }
+            }
+        }
+        return res;
+    }
+
     pub fn create(t: &Task) -> Self {
         for p in t.hole.iter() {
             assert!(p.x >= 0);

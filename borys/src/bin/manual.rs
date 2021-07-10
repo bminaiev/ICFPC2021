@@ -1,12 +1,12 @@
 use std::time::Duration;
-use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution};
+use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer};
 use borys::helper::Helper;
 use borys::rand::Random;
 use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
 
-const TEST_ID: usize = 78;
+const TEST_ID: usize = 68;
 
 fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool], depth: usize, max_depth: usize) -> bool {
     for edge in t.edges.iter() {
@@ -124,6 +124,16 @@ pub fn main() {
                             }
                         }
                     }
+                }
+                UserEvent::RunLocalOptimizations => {
+                    let old_score = solution.dislikes;
+                    solution = local_optimizer::optimize_only_optimal(&task, &helper, solution, &mut rnd, &mut None);
+                    println!("Local optimizations: {} -> {}", old_score, solution.dislikes);
+                }
+                UserEvent::MovePoint(to) => {
+                    let selected = state.selected.unwrap();
+                    solution = solution.move_one_point(selected, *to, &task, &helper);
+                    // TODO: check solution is valid?
                 }
             }
         }

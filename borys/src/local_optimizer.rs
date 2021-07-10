@@ -7,12 +7,17 @@ use crate::vizualizer::{Visualizer, UserEvent};
 const DRAW_PICTURES: bool = false;
 
 
-pub fn optimize(t: &Task, helper: &Helper, solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
-    let solution = optimize_internal(t, helper, solution, rnd, viz, true);
-    return optimize_internal(t, helper, solution, rnd, viz, true);
+pub fn optimize_only_optimal(t: &Task, helper: &Helper, solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
+    optimize_internal(t, helper, solution, rnd, viz, false, true)
 }
 
-pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>, sort_by_crossed_edges: bool) -> Solution {
+pub fn optimize(t: &Task, helper: &Helper, solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
+    let solution = optimize_internal(t, helper, solution, rnd, viz, true, false);
+    return optimize_internal(t, helper, solution, rnd, viz, false, false);
+}
+
+pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>,
+                         sort_by_crossed_edges: bool, only_optimal_moves: bool) -> Solution {
     let n = t.fig.len();
     println!("start local optimizations.. eps = {}, cur score = {}", t.epsilon, solution.dislikes);
     let mut iter = 0;
@@ -95,7 +100,7 @@ pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd:
                                 } else {
                                     new_sol.cmp(&solution)
                                 };
-                                if cmp == Ordering::Less || rnd.next_double() < pr_change {
+                                if cmp == Ordering::Less || (rnd.next_double() < pr_change && !only_optimal_moves) {
                                     solution = new_sol;
                                     if solution.cmp(&b_sol) == Ordering::Less {
                                         b_sol = solution.clone();

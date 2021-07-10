@@ -7,15 +7,17 @@ use sdl2::keyboard::Keycode;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
 use sdl2::EventPump;
+use std::cmp::{min, max};
+use sdl2::mouse::MouseButton::{Left, Right};
 
 pub struct Visualizer<'ttf> {
     canvas: WindowCanvas,
     event_pump: EventPump,
     font: Font<'ttf, 'static>,
+    zoom: i32,
 }
 
-
-const ZOOM: i32 = 10;
+const MAX_SIZE: i32 = 2000;
 
 fn color_inside(from: Color, to: Color, mut part: f64) -> Color {
     // if part > 1.0 {
@@ -51,6 +53,8 @@ pub enum UserEvent {
     CloseApp,
     Selected(usize),
     Shift(Shift),
+    RunLocalOptimizations,
+    MovePoint(Point),
 }
 
 pub struct AdditionalState {
@@ -72,7 +76,9 @@ impl<'a> Visualizer<'a> {
 
         let display = video_subsystem.display_bounds(1).unwrap();
 
-        let window = video_subsystem.window("rust-sdl2 demo", (helper.max_c * ZOOM) as u32, (helper.max_c * ZOOM) as u32)
+        let zoom = max(1, MAX_SIZE / helper.max_c);
+
+        let window = video_subsystem.window("rust-sdl2 demo", (helper.max_c * zoom) as u32, (helper.max_c * zoom) as u32)
             .position(display.x + 1000, display.y + 400)
             .build()
             .unwrap();
@@ -82,11 +88,11 @@ impl<'a> Visualizer<'a> {
 
         let font = ttf_context.load_font("assets/times.ttf", 20).unwrap();
 
-        Self { canvas, event_pump, font }
+        Self { canvas, event_pump, font, zoom }
     }
 
-    fn conv_point(p: &Point) -> sdl2::rect::Point {
-        sdl2::rect::Point::new(p.x * ZOOM, p.y * ZOOM)
+    fn conv_point(zoom: i32, p: &Point) -> sdl2::rect::Point {
+        sdl2::rect::Point::new(p.x * zoom, p.y * zoom)
     }
 
     pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64, state: Option<&AdditionalState>) -> Vec<UserEvent> {
@@ -98,21 +104,30 @@ impl<'a> Visualizer<'a> {
 
         self.canvas.set_draw_color(GREY);
         for x in 0..helper.max_c {
-            self.canvas.draw_line(Self::conv_point(&Point { x, y: 0 }), Self::conv_point(&Point { x, y: helper.max_c as i32 })).unwrap();
+            self.canvas.draw_line(Self::conv_point(self.zoom, &Point { x, y: 0 }), Self::conv_point(self.zoom, &Point { x, y: helper.max_c as i32 })).unwrap();
         }
         for y in 0..helper.max_c {
-            self.canvas.draw_line(Self::conv_point(&Point { x: 0, y }), Self::conv_point(&Point { x: helper.max_c as i32, y })).unwrap();
+            self.canvas.draw_line(Self::conv_point(self.zoom, &Point { x: 0, y }), Self::conv_point(self.zoom, &Point { x: helper.max_c as i32, y })).unwrap();
         }
         self.canvas.set_draw_color(Color::BLACK);
         for edge in helper.hole_and_first.windows(2) {
-            let p1 = Self::conv_point(&edge[0]);
-            let p2 = Self::conv_point(&edge[1]);
+            let p1 = Self::conv_point(self.zoom, &edge[0]);
+            let p2 = Self::conv_point(self.zoom, &edge[1]);
             self.canvas.draw_line(p1, p2).unwrap();
+        }
+
+        for hole_p in task.hole.iter() {
+            let mut min_d2 = std::i64::MAX;
+            for p in solution.vertices.iter() {
+                min_d2 = min(min_d2, p.d2(hole_p));
+            }
+            let screen_p = Self::conv_point(self.zoom, &hole_p);
+            Self::print_text(&mut self.font, &mut self.canvas, &format!("{}", min_d2), screen_p.x, screen_p.y);
         }
         let mut bad_edges = 0;
         for edge in task.edges.iter() {
-            let p1 = Self::conv_point(&solution.vertices[edge.fr]);
-            let p2 = Self::conv_point(&solution.vertices[edge.to]);
+            let p1 = Self::conv_point(self.zoom, &solution.vertices[edge.fr]);
+            let p2 = Self::conv_point(self.zoom, &solution.vertices[edge.to]);
             let score = helper.edge_score(&task, edge.fr, edge.to, &solution.vertices[edge.fr], &solution.vertices[edge.to]);
             if score > 1.0 {
                 bad_edges += 1;
@@ -123,17 +138,17 @@ impl<'a> Visualizer<'a> {
         }
 
         const Y_SHIFT: i32 = 30;
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("sum errors: {}", sum_errors), 0);
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("bad edges: {}", bad_edges), Y_SHIFT * 1);
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("dislikes: {}", solution.dislikes), Y_SHIFT * 2);
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("generation: {}", generation), Y_SHIFT * 3);
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("crossed edges: {}", solution.crossed_edges), Y_SHIFT * 4);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("sum errors: {}", sum_errors), 0, 0);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("bad edges: {}", bad_edges), 0, Y_SHIFT * 1);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("dislikes: {}", solution.dislikes), 0, Y_SHIFT * 2);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("generation: {}", generation), 0, Y_SHIFT * 3);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("crossed edges: {}", solution.crossed_edges), 0, Y_SHIFT * 4);
 
-        let closest_point = |x: i32, y: i32| {
+        let closest_point = |zoom: i32, x: i32, y: i32, pts: &[Point]| {
             let mut closest_point = 0;
             let mut best_d2 = std::i32::MAX;
-            for v in 0..solution.vertices.len() {
-                let p = Self::conv_point(&solution.vertices[v]);
+            for v in 0..pts.len() {
+                let p = Self::conv_point(zoom, &pts[v]);
                 let dx2 = (p.x - x) * (p.x - x);
                 let dy2 = (p.y - y) * (p.y - y);
                 let d2 = dx2 + dy2;
@@ -151,11 +166,11 @@ impl<'a> Visualizer<'a> {
         match state {
             None => {}
             Some(state) => {
-                Self::print_text(&mut self.font, &mut self.canvas, &format!("mouse: {} {}", state.mouse_x, state.mouse_y), Y_SHIFT * 5);
-                match closest_point(state.mouse_x, state.mouse_y) {
+                Self::print_text(&mut self.font, &mut self.canvas, &format!("mouse: {} {}", state.mouse_x, state.mouse_y), 0, Y_SHIFT * 5);
+                match closest_point(self.zoom, state.mouse_x, state.mouse_y, &solution.vertices) {
                     None => {}
                     Some(closest_point) => {
-                        let p = Self::conv_point(&solution.vertices[closest_point]);
+                        let p = Self::conv_point(self.zoom, &solution.vertices[closest_point]);
                         self.canvas.set_draw_color(Color::BLACK);
                         let s = 3i32;
                         self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
@@ -164,7 +179,14 @@ impl<'a> Visualizer<'a> {
                 match state.selected {
                     None => {}
                     Some(v) => {
-                        let p = Self::conv_point(&solution.vertices[v]);
+                        let p = Self::conv_point(self.zoom, &solution.vertices[v]);
+                        let possible_positions = helper.get_possible_positions(&task, &solution.vertices, v);
+                        for show_p in possible_positions.iter() {
+                            let screen_p = Self::conv_point(self.zoom, show_p);
+                            self.canvas.set_draw_color(Color::BLUE);
+                            let s = 1i32;
+                            self.canvas.fill_rect(sdl2::rect::Rect::new(screen_p.x - s, screen_p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
+                        }
                         self.canvas.set_draw_color(Color::RED);
                         let s = 3i32;
                         self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
@@ -192,6 +214,9 @@ impl<'a> Visualizer<'a> {
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
                     events.push(UserEvent::Shift(Shift { dx: 0, dy: -1 }));
                 }
+                Event::KeyDown { keycode: Some(Keycode::O), .. } => {
+                    events.push(UserEvent::RunLocalOptimizations);
+                }
                 Event::MouseMotion {
                     x,
                     y,
@@ -202,11 +227,26 @@ impl<'a> Visualizer<'a> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     events.push(UserEvent::CloseApp)
                 }
-                Event::MouseButtonUp { x, y, .. } => {
-                    match closest_point(x, y) {
-                        None => {}
-                        Some(p) => {
-                            events.push(UserEvent::Selected(p));
+                Event::MouseButtonUp { x, y, mouse_btn, .. } => {
+                    if mouse_btn == Left {
+                        match closest_point(self.zoom, x, y, &solution.vertices) {
+                            None => {}
+                            Some(p) => {
+                                events.push(UserEvent::Selected(p));
+                            }
+                        }
+                    } else if mouse_btn == Right {
+                        match state.map(|x| x.selected) {
+                            None | Some(None) => {}
+                            Some(Some(v)) => {
+                                let possible_positions = helper.get_possible_positions(&task, &solution.vertices, v);
+                                match closest_point(self.zoom, x, y, &possible_positions) {
+                                    None => {}
+                                    Some(id) => {
+                                        events.push(UserEvent::MovePoint(possible_positions[id]));
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -217,7 +257,7 @@ impl<'a> Visualizer<'a> {
     }
 
 
-    fn print_text(font: &mut Font, canvas: &mut Canvas<Window>, text: &str, y_shift: i32) {
+    fn print_text(font: &mut Font, canvas: &mut Canvas<Window>, text: &str, x_shift: i32, y_shift: i32) {
 // render a surface, and convert it to a texture bound to the canvas
         let surface = font
             .render(text)
@@ -228,6 +268,6 @@ impl<'a> Visualizer<'a> {
         let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
 
         let TextureQuery { width, height, .. } = texture.query();
-        canvas.copy(&texture, None, Some(sdl2::rect::Rect::new(0, y_shift, width, height))).unwrap();
+        canvas.copy(&texture, None, Some(sdl2::rect::Rect::new(x_shift, y_shift, width, height))).unwrap();
     }
 }
