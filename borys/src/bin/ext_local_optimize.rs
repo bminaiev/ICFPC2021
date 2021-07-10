@@ -5,6 +5,8 @@ use std::fs::File;
 use borys::helper::Helper;
 use borys::rand::Random;
 use std::path::Path;
+use borys::vizualizer::Visualizer;
+use std::time::Duration;
 
 /**************************************************
 
@@ -134,7 +136,7 @@ pub fn main() {
 
     let outputs_suffix = ""; // "_romka"
 
-    const TEST: usize = 9;
+    const TEST: usize = 88;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let mut vertices: Vec<_> = if LOAD_MY {
@@ -165,14 +167,18 @@ pub fn main() {
         let task = conv_input(&input);
         let helper = Helper::create(&task);
 
+        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
+        let mut viz = Some(Visualizer::create(&helper, &ttf_context));
+
+
         let mut rnd = Random::new(7881181);
 
-        for _ in 0..100 {
+        for _ in 0..1 {
             let mut solution = Solution::create(vertices.clone(), &task, &helper);
 
             loop {
                 let old_dislikes = solution.dislikes;
-                let local_optimized_solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd);
+                let local_optimized_solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd, &mut viz);
                 let global_optimized = solver::not_local_optimize(&task, &helper, &mut rnd, local_optimized_solution);
                 solution = global_optimized;
                 save_solution(&solution, test, &mut f_all, &task);
@@ -182,6 +188,16 @@ pub fn main() {
             }
 
             save_solution(&solution, test, &mut f_all, &task);
+        }
+        match viz {
+            None => {}
+            Some(mut viz) => {
+                let mut solution = Solution::create(vertices.clone(), &task, &helper);
+                loop {
+                    Visualizer::render(&mut viz, &task, &helper, &solution, -1);
+                    ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 600));
+                }
+            }
         }
     }
 }

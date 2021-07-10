@@ -64,7 +64,7 @@ impl<'a> Visualizer<'a> {
         sdl2::rect::Point::new(p.x * ZOOM, p.y * ZOOM)
     }
 
-    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution) {
+    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64) {
         self.canvas.set_draw_color(Color::WHITE);
         self.canvas.clear();
 
@@ -97,8 +97,11 @@ impl<'a> Visualizer<'a> {
             self.canvas.draw_line(p1, p2).unwrap();
         }
 
+        const Y_SHIFT: i32 = 30;
         Self::print_text(&mut self.font, &mut self.canvas, &format!("sum errors: {}", sum_errors), 0);
-        Self::print_text(&mut self.font, &mut self.canvas, &format!("bad edges: {}", bad_edges), 30);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("bad edges: {}", bad_edges), Y_SHIFT * 1);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("dislikes: {}", solution.dislikes), Y_SHIFT * 2);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("generation: {}", generation), Y_SHIFT * 3);
 
         self.canvas.present();
         for event in self.event_pump.poll_iter() {
