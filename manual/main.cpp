@@ -451,13 +451,18 @@ void doFix() {
         if (mt[i] != -1) continue;
 
         auto calcPen = [&](const PointD& sh) -> double {
+            PointD pp = points[i] + sh;
             double pen = 0;
             for (int v : g[i]) {
-                int cd = (points[i] + sh - points[v]).abs2();
+                int cd = (pp - points[v]).abs2();
                 int od = (srcPoints[i] - srcPoints[v]).abs2();
                 if (abs(cd / double(od) - 1) > E / 1e6) {
                     pen += abs(sqrt(cd) - sqrt(od));
                 }
+            }
+            pen *= 1e4;
+            for (const PointD& h : hole) {
+                pen -= (h - pp).abs2();
             }
             return pen;
         };

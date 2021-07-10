@@ -231,9 +231,11 @@ int main(int argc, char** argv) {
   debug(test);
 
   vector<bool> taken(nv, false);
+  int tkc = 0;
   for (int i = 0; i < np; i++)
     if (test[i] != -1) {
       taken[test[i]] = true;
+      tkc++;
       v[test[i]] = poly[i];
     }
 
@@ -292,7 +294,7 @@ int main(int argc, char** argv) {
   } else {
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
-    for (auto iter = 0; iter < (int)1e7; iter++) {
+    for (auto iter = 0; iter < (int)1e5 * nv / (nv - tkc); iter++) {
       // shuffle(order.begin(), order.end(), rng);
       int qi = iter % order.size();
       if (taken[order[qi]]) continue;
