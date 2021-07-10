@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
   bool found = false;
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
-    if (ii > 3) {
+    if (false && ii > 3) {
       found = true;
       ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
           out << v.size() << '\n';
