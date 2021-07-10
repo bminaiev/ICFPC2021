@@ -28,7 +28,8 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
     let v_to_put = need_to_put.last().unwrap().v;
     let mut possible_positions = vec![];
     let edges: Vec<_> = t.edges.iter().filter(|e| e.fr == v_to_put && cur_positions[e.to].is_some() || e.to == v_to_put && cur_positions[e.fr].is_some()).cloned().collect();
-    if rnd.next_in_range(0, 5) == 0 {
+    let edges_with_id: Vec<_> = t.edges.iter().enumerate().filter(|(_, e)| e.fr == v_to_put && cur_positions[e.to].is_some() || e.to == v_to_put && cur_positions[e.fr].is_some()).collect();
+    if rnd.next_in_range(0, 10) == 0 {
         for p in t.hole.iter() {
             if helper.is_valid_position(v_to_put, &p, &edges, &cur_positions, t) {
                 possible_positions.push(*p);
@@ -36,9 +37,30 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
         }
     }
     if possible_positions.is_empty() {
-        for x in 0..helper.max_c {
-            for y in 0..helper.max_c {
-                let p = Point { x, y };
+        if edges.is_empty() {
+            for x in 0..helper.max_c {
+                for y in 0..helper.max_c {
+                    let p = Point { x, y };
+                    if helper.is_valid_position(v_to_put, &p, &edges, &cur_positions, t) {
+                        possible_positions.push(p);
+                    }
+                }
+            }
+        } else {
+            let mut base_p = Point { x: -1, y: -1 };
+            let mut cur_best_cnt = std::usize::MAX;
+            let mut shifts = &vec![];
+            for (e_id, e) in edges_with_id.iter() {
+                let possible_shifts = &helper.shifts_per_edge[*e_id];
+                if possible_shifts.len() < cur_best_cnt {
+                    cur_best_cnt = possible_shifts.len();
+                    base_p = cur_positions[e.fr + e.to - v_to_put].unwrap();
+                    shifts = possible_shifts;
+                }
+            }
+            assert!(base_p.x >= 0);
+            for shift in shifts.iter() {
+                let p = Point { x: base_p.x + shift.dx, y: base_p.y + shift.dy };
                 if helper.is_valid_position(v_to_put, &p, &edges, &cur_positions, t) {
                     possible_positions.push(p);
                 }

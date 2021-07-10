@@ -133,7 +133,7 @@ pub fn main() {
     let outputs_suffix = ""; // "_romka"
 
     const TEST: usize = 10;
-    for test in 64..=78 {
+    for test in 62..=62 {
         println!("TEST: {}", test);
         let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
         if !Path::new(&romka_path).exists() {
@@ -156,7 +156,7 @@ pub fn main() {
 
         let mut rnd = Random::new(787881);
 
-        for _ in 0..1 {
+        for _ in 0..10 {
             let mut solution = Solution::create(vertices.clone(), &task, &helper);
 
             loop {
