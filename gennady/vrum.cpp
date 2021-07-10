@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
         // (new_len - old_len) * EPS_COEF <= eps * old_len
         // new_len <= eps * old_len / EPS_COEF + old_len
         double new_len = (double) old_len + (double) (eps * old_len) / (double) EPS_COEF;
-        max_dist[i][j] = new_len;
+        max_dist[i][j] = sqrt(new_len);
       }
     }
   }
@@ -249,7 +249,19 @@ int main(int argc, char** argv) {
   vector<Point> v(nv, Point(-1, -1));
   int best_score = (int) 1e9;
   auto best_v = v;
+  bool found = false;
   function<void(int)> Dfs = [&](int ii) {
+    if (found) return;
+    if (ii > 3) {
+      found = true;
+      ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
+          out << v.size() << '\n';
+          for (auto& p : v) {
+            out << p.x << " " << p.y << '\n';
+          }
+          out.close();
+        return;
+    }
     if (ii == nv) {
       int score = (int) E.eval(v);
       if (score != -1) {
@@ -258,7 +270,7 @@ int main(int argc, char** argv) {
           best_v = v;
           debug(best_v);
           debug(score, best_score);
-          ofstream out("../outputs/" + to_string(xid) + ".ans");
+          ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
           out << best_v.size() << '\n';
           for (auto& p : best_v) {
             out << p.x << " " << p.y << '\n';
@@ -319,18 +331,20 @@ int main(int argc, char** argv) {
     }
   };
 
-  vector<int> test(np, -1);// = {0, 11, 18, 6, 16};
-//  test[12] = 19;
-//  test[13] = 18;
-  test[4] = 48;
-  test[5] = 40;
-  test[6] = 20;
-  test[7] = 10;
+  vector<int> test(np, -1);
+  ifstream tin("../hints/" + to_string(xid) + ".txt");
+  if (!tin.is_open()) {
+    cerr << "hint for " << xid << "doesn't exist (check relative path?)" << '\n';
+    return 0;
+  }
+  for (int i = 0; i < np; i++) tin >> test[i];
+  debug(test);
 
   vector<bool> taken(nv, false);
   for (int i = 0; i < np; i++) if (test[i] != -1) taken[test[i]] = true;
 
   function<void(int)> DfsZero = [&](int ii) {
+    if (found) return;
     if (ii == np) {
       debug(v);
       Dfs(0);

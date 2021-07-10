@@ -17,7 +17,7 @@ void draw() {
             int cd = (hole[i] - points[j]).abs2();
             if (cd < bd) bd = cd;
         }
-        v.p.drawText(hole[i].x * SCALE - 10, hole[i].y * SCALE - 10, QString::number(bd));
+        v.p.drawText(hole[i].x * SCALE - 10, hole[i].y * SCALE - 10, QString::number(i) + ":" + QString::number(bd));
     }
 
     v.p.setPen(grayPen);

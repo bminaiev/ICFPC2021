@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <array>
+#include <random>
 #include <thread>
 #include <set>
 #include <cassert>
@@ -39,6 +40,81 @@ const int dy[] = {0, -1, 0, 1, 0};
 
 const int inf = 1e9;
 
+
+template <typename A, typename B>
+string to_string(pair<A, B> p);
+
+template <typename A, typename B, typename C>
+string to_string(tuple<A, B, C> p);
+
+template <typename A, typename B, typename C, typename D>
+string to_string(tuple<A, B, C, D> p);
+
+string to_string(const string& s) {
+  return '"' + s + '"';
+}
+
+string to_string(const char* s) {
+  return to_string((string) s);
+}
+
+string to_string(bool b) {
+  return (b ? "true" : "false");
+}
+
+string to_string(vector<bool> v) {
+  bool first = true;
+  string res = "{";
+  for (int i = 0; i < static_cast<int>(v.size()); i++) {
+    if (!first) {
+      res += ", ";
+    }
+    first = false;
+    res += to_string(v[i]);
+  }
+  res += "}";
+  return res;
+}
+
+template <size_t N>
+string to_string(bitset<N> v) {
+  string res = "";
+  for (size_t i = 0; i < N; i++) {
+    res += static_cast<char>('0' + v[i]);
+  }
+  return res;
+}
+
+template <typename A>
+string to_string(A v) {
+  bool first = true;
+  string res = "{";
+  for (const auto &x : v) {
+    if (!first) {
+      res += ", ";
+    }
+    first = false;
+    res += to_string(x);
+  }
+  res += "}";
+  return res;
+}
+
+template <typename A, typename B>
+string to_string(pair<A, B> p) {
+  return "(" + to_string(p.first) + ", " + to_string(p.second) + ")";
+}
+
+template <typename A, typename B, typename C>
+string to_string(tuple<A, B, C> p) {
+  return "(" + to_string(get<0>(p)) + ", " + to_string(get<1>(p)) + ", " + to_string(get<2>(p)) + ")";
+}
+
+template <typename A, typename B, typename C, typename D>
+string to_string(tuple<A, B, C, D> p) {
+  return "(" + to_string(get<0>(p)) + ", " + to_string(get<1>(p)) + ", " + to_string(get<2>(p)) + ", " + to_string(get<3>(p)) + ")";
+}
+
 struct Edge {
     int from, to, D;
 };
@@ -49,9 +125,11 @@ vector<Point> srcPoints;
 vector<Edge> edges;
 vector<pii> edgePairs;
 vector<PointD> hole;
+vector<Point> poly;
 vector<int> mt;
 int test_id;
 Evaluator ev;
+vector<vector<int>> g;
 
 void readInput() {
     const string fname = "../inputs_conv/" + to_string(test_id) + ".problem";
@@ -72,6 +150,8 @@ void readInput() {
     cin >> N;
     points.resize(N);
     srcPoints.resize(N);
+    g.clear();
+    g.resize(N);
     forn(i, N) {
         cin >> srcPoints[i].x >> srcPoints[i].y;
         points[i].x = srcPoints[i].x;
@@ -81,16 +161,18 @@ void readInput() {
 
     forn(i, M) {
         edges[i].D = (points[edges[i].from] - points[edges[i].to]).abs2();
+        g[edges[i].from].push_back(edges[i].to);
+        g[edges[i].to].push_back(edges[i].from);
     }
     
     cin >> E;
 
-    vector<Point> holeInt(H);
+    poly.resize(H);
     forn(i, H) {
-        holeInt[i].x = round(hole[i].x);
-        holeInt[i].y = round(hole[i].y);
+        poly[i].x = round(hole[i].x);
+        poly[i].y = round(hole[i].y);
     }
-    ev = Evaluator(holeInt, srcPoints, edgePairs, E);
+    ev = Evaluator(poly, srcPoints, edgePairs, E);
     cerr << "read input " << test_id << endl;    
 }
 
@@ -120,4 +202,15 @@ void saveSolution() {
     fout.close();
 
     cerr << "saved to " << fname << endl;   
+}
+
+void saveHint() {
+    const string fname = "../hints/" + to_string(test_id) + ".txt";
+    ofstream fout(fname);
+    vector<int> tp(H, -1);
+    forn(i, N) if (mt[i] != -1) tp[mt[i]] = i;
+    for (int x : tp) fout << x << " ";
+    fout.close();
+
+    cerr << "hint saved to " << fname << endl;   
 }
