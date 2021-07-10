@@ -133,7 +133,7 @@ pub fn main() {
 
     let outputs_suffix = "_romka"; // "_romka"
 
-    const TEST: usize = 5;
+    const TEST: usize = 10;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);

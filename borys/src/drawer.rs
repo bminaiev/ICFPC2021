@@ -14,7 +14,8 @@ const C: i32 = 8;
 const BLACK: Rgb<u8> = Rgb([0u8, 0u8, 0u8]);
 const RED: Rgb<u8> = Rgb([255u8, 0u8, 0u8]);
 const GREEN: Rgb<u8> = Rgb([0u8, 255u8, 0u8]);
-const GREY: Rgb<u8> = Rgb([192u8, 192u8, 192u8]);
+const G: u8 = 222u8;
+const GREY: Rgb<u8> = Rgb([G, G, G]);
 
 fn color_inside(from: Rgb<u8>, to: Rgb<u8>, part: f64) -> Rgb<u8> {
     let mid = |x: u8, y: u8| -> u8 {
