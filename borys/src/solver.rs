@@ -8,8 +8,15 @@ struct NeedToPut {
 }
 
 const DRAW_PICTURES: bool = false;
+const MAX_TOP_POSITIONS: usize = 2;
 
-fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, rnd: &mut Random, depth: usize) -> Option<Solution> {
+#[derive(Ord, PartialOrd, Eq, PartialEq)]
+struct PosWithScore {
+    dislikes: i64,
+    pos: Point,
+}
+
+fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, rnd: &mut Random, depth: usize, dist_from_holes: &mut [i64]) -> Option<Solution> {
     let mut need_to_put = vec![];
     for i in 0..cur_positions.len() {
         if cur_positions[i].is_none() {
@@ -85,6 +92,18 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
 
         return None;
     }
+    let mut positions_with_score: Vec<_> = possible_positions.iter().map(|pos| {
+        let mut dislikes = 0;
+        for i in 0..t.hole.len() {
+            let cur_d = t.hole[i].d2(pos);
+            dislikes += min(cur_d, dist_from_holes[i]);
+        }
+        PosWithScore { dislikes, pos: *pos }
+    }).collect();
+    positions_with_score.sort();
+    while positions_with_score.len() > MAX_TOP_POSITIONS {
+        positions_with_score.pop();
+    }
     let p = possible_positions[rnd.next_in_range(0, possible_positions.len())];
     cur_positions[v_to_put] = Some(p);
     if DRAW_PICTURES
@@ -96,8 +115,12 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
         let solution = Solution::create(vertices, t, helper);
         drawer::save_test(t, &solution, &format!("process/{:04}.png", depth));
     }
+    for i in 0..t.hole.len() {
+        let cur_d = t.hole[i].d2(&p);
+        dist_from_holes[i] = min(dist_from_holes[i], cur_d);
+    }
 
-    return match solve_rec(t, helper, cur_positions, rnd, depth + 1) {
+    return match solve_rec(t, helper, cur_positions, rnd, depth + 1, dist_from_holes) {
         None => {
             cur_positions[v_to_put] = None;
             None
@@ -161,7 +184,8 @@ pub fn not_local_optimize(t: &Task, helper: &Helper, rnd: &mut Random, solution:
             for &v in to_delete.iter() {
                 cur_positions[v] = None;
             }
-            match solve_rec(t, helper, &mut cur_positions, rnd, 0) {
+            let mut dist_from_holes = vec![std::i64::MAX; t.hole.len()];
+            match solve_rec(t, helper, &mut cur_positions, rnd, 0, &mut dist_from_holes) {
                 None => {
                     continue;
                 }
@@ -191,7 +215,8 @@ pub fn solve_with_helper(t: &Task, helper: &Helper, rnd: &mut Random) -> Option<
 
     for it in 0..MAX_ITERS {
         drawer::reset();
-        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd, 0);
+        let mut dist_from_holes = vec![std::i64::MAX; t.hole.len()];
+        let solution = solve_rec(t, helper, &mut vec![None; t.fig.len()], rnd, 0, &mut dist_from_holes);
         if solution.is_some() {
             println!("wow!!! score = {}", solution.clone().unwrap().dislikes);
             return solution;
