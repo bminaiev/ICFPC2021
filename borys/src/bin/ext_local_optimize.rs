@@ -134,7 +134,7 @@ pub fn main() {
 
     let outputs_suffix = ""; // "_romka"
 
-    const TEST: usize = 10;
+    const TEST: usize = 9;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let mut vertices: Vec<_> = if LOAD_MY {
@@ -165,7 +165,7 @@ pub fn main() {
         let task = conv_input(&input);
         let helper = Helper::create(&task);
 
-        let mut rnd = Random::new(78881);
+        let mut rnd = Random::new(7881181);
 
         for _ in 0..100 {
             let mut solution = Solution::create(vertices.clone(), &task, &helper);

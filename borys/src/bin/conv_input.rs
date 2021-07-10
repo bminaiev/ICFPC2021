@@ -21,4 +21,8 @@ pub fn main() {
         println!("{} {}", v[0], v[1]);
     }
     println!("{}", input.epsilon);
+    println!("{}", input.bonuses.len());
+    for bonus in input.bonuses.iter() {
+        println!("{} {} {} {}", bonus.bonus, bonus.problem, bonus.position[0], bonus.position[1])
+    }
 }

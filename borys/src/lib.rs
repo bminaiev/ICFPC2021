@@ -13,11 +13,20 @@ pub struct Figure {
     pub vertices: Vec<PointInput>,
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Bonus {
+    pub bonus: String,
+    pub problem: usize,
+    pub position: PointInput,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Input {
     pub hole: Vec<PointInput>,
     pub figure: Figure,
     pub epsilon: i64,
+    pub bonuses: Vec<Bonus>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

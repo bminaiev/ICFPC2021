@@ -17,3 +17,6 @@ figure_vertex_2_x figure_vertex_2_y
 figure_vertex_1_n figure_vertex_1_n
 
 epsilon
+
+bonus_n
+bonus_n times: bonus.bonus bonus.problem bonus.position.x bonus.position.y
