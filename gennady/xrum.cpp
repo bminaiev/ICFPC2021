@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
   in.close();
 
   vector<Point> v(nv, Point(-1, -1));
-  ifstream in_ans("../outputs/" + to_string(xid) + ".ans");
+  ifstream in_ans("../outputs_romka/" + to_string(xid) + ".ans");
   int nv_test;
   in_ans >> nv_test;
   assert(nv == nv_test);
@@ -194,9 +194,9 @@ int main(int argc, char** argv) {
   auto best_v = v;
 
   mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
-  double init_temp = 1000000;
-  double final_temp = 0.1;
-  const int ITERS = 20000;
+  double init_temp = 300000;
+  double final_temp = 0.05;
+  const int ITERS = 70000;
   for (int outer = 0; outer < ITERS; outer++) {
     double temp = init_temp * pow(final_temp / init_temp, outer * 1.0 / ITERS);
     for (int rep = 0; rep < nv; rep++) {
@@ -270,13 +270,20 @@ int main(int argc, char** argv) {
       best_score = score;
       best_v = v;
     }
-    if (outer % 1000 == 0)
+    if (outer % 1000 == 0) {
       debug(temp, score, best_score);
-//    cout << E.error_msg << '\n';
+      ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
+      out << v.size() << '\n';
+      for (auto& p : v) {
+        out << p.x << " " << p.y << '\n';
+      }
+      out.close();
+    }
+
   }
   debug(E.eval(v), best_score);
 
-  ofstream out("../outputs/" + to_string(xid) + ".ans");
+  ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
   out << best_v.size() << '\n';
   for (auto& p : best_v) {
     out << p.x << " " << p.y << '\n';
