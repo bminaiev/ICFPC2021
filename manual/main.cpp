@@ -456,11 +456,11 @@ void doFix() {
             for (int v : g[i]) {
                 int cd = (pp - points[v]).abs2();
                 int od = (srcPoints[i] - srcPoints[v]).abs2();
-                if (abs(cd / double(od) - 1) > E / 1e6) {
+                if (1000000LL * (cd - od) > (ll)E * od) {
                     pen += abs(sqrt(cd) - sqrt(od));
                 }
             }
-            pen *= 1e4;
+            pen *= 1e6;
             for (const PointD& h : hole) {
                 pen -= (h - pp).abs2();
             }

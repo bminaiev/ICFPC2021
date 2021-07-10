@@ -55,8 +55,8 @@ void draw() {
         }
 
     for (const auto& e : edges) {
-        const int cd = (points[e.from] - points[e.to]).abs2();
-        if (abs(cd / double(e.D) - 1) * 1000000 > E) v.p.setPen(redPen);
+        const ll cd = (points[e.from] - points[e.to]).abs2();
+        if (1000000LL * (cd - e.D) > (ll)E * e.D) v.p.setPen(redPen);
         else v.p.setPen(greenPen);
         v.p.drawLine(points[e.from].x * SCALE, points[e.from].y * SCALE, points[e.to].x * SCALE, points[e.to].y * SCALE);
     }
