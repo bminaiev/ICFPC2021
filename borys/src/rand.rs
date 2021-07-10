@@ -20,7 +20,7 @@ impl Random {
     }
 
     #[allow(dead_code)]
-    fn next_double(&mut self) -> f64 {
+    pub fn next_double(&mut self) -> f64 {
         (self.next() as f64) / (std::usize::MAX as f64)
     }
 
@@ -40,4 +40,5 @@ impl Random {
         }
         return res;
     }
+
 }

@@ -12,7 +12,7 @@ const MAX_TOP_POSITIONS: usize = 2;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
 struct PosWithScore {
-    dislikes: i64,
+    minus_sum_d2: i64,
     pos: Point,
 }
 
@@ -93,12 +93,14 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
         return None;
     }
     let mut positions_with_score: Vec<_> = possible_positions.iter().map(|pos| {
-        let mut dislikes = 0;
-        for i in 0..t.hole.len() {
-            let cur_d = t.hole[i].d2(pos);
-            dislikes += min(cur_d, dist_from_holes[i]);
+        let mut sum_d2 = 0;
+        for another_p in cur_positions.iter() {
+            match another_p {
+                None => {}
+                Some(another_p) => { sum_d2 += another_p.d2(pos); }
+            }
         }
-        PosWithScore { dislikes, pos: *pos }
+        PosWithScore { minus_sum_d2: -sum_d2, pos: *pos }
     }).collect();
     positions_with_score.sort();
     while positions_with_score.len() > MAX_TOP_POSITIONS {

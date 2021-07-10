@@ -127,25 +127,36 @@ impl Scanner {
  *************************************************/
 
 
+const LOAD_MY: bool = true;
+
 pub fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
 
     let outputs_suffix = ""; // "_romka"
 
     const TEST: usize = 10;
-    for test in 62..=62 {
+    for test in TEST..=TEST {
         println!("TEST: {}", test);
-        let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
-        if !Path::new(&romka_path).exists() {
-            continue;
-        }
-        let mut sc = Scanner::new_file(&romka_path);
-        let n = sc.usize();
-        let vertices: Vec<_> = (0..n).map(|_| {
-            let x = sc.i32();
-            let y = sc.i32();
-            Point { x, y }
-        }).collect();
+        let mut vertices: Vec<_> = if LOAD_MY {
+            let file = File::open(format!("../borys/outputs/{}.ans", test)).unwrap();
+            let reader = BufReader::new(file);
+
+            let output: OutputFormat = serde_json::from_reader(reader).unwrap();
+            output.vertices.iter().map(|o| Point { x: o[0], y: o[1] }).collect()
+        } else {
+            let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
+            if !Path::new(&romka_path).exists() {
+                continue;
+            }
+            let mut sc = Scanner::new_file(&romka_path);
+            let n = sc.usize();
+            (0..n).map(|_| {
+                let x = sc.i32();
+                let y = sc.i32();
+                Point { x, y }
+            }).collect()
+        };
+
         let file = File::open(format!("../inputs/{}.problem", test)).unwrap();
         let reader = BufReader::new(file);
 
@@ -154,9 +165,9 @@ pub fn main() {
         let task = conv_input(&input);
         let helper = Helper::create(&task);
 
-        let mut rnd = Random::new(787881);
+        let mut rnd = Random::new(78881);
 
-        for _ in 0..10 {
+        for _ in 0..100 {
             let mut solution = Solution::create(vertices.clone(), &task, &helper);
 
             loop {
@@ -164,6 +175,7 @@ pub fn main() {
                 let local_optimized_solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd);
                 let global_optimized = solver::not_local_optimize(&task, &helper, &mut rnd, local_optimized_solution);
                 solution = global_optimized;
+                save_solution(&solution, test, &mut f_all, &task);
                 if solution.dislikes >= old_dislikes {
                     break;
                 }

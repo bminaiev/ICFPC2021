@@ -22,6 +22,8 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
             small_shifts.push(Shift { dx, dy });
         }
     }
+    let mut b_sol = solution.clone();
+    let mut pr_change = 1.0;
     loop {
         let mut perm = vec![];
         for _ in 0..n {
@@ -43,6 +45,7 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                 // break;
             }
             for &id in perm.iter() {
+                pr_change *= 0.999;
                 let p = solution.vertices[id];
                 let mut shifts = &small_shifts;
                 let mut base_point = p;
@@ -80,11 +83,14 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                             None => {
                                 let vertices: Vec<_> = cur_positions.iter().map(|x| x.unwrap()).collect();
                                 let new_sol = Solution::create(vertices, t, helper);
-                                if new_sol.cmp(&solution) == Ordering::Less {
+                                if new_sol.cmp(&solution) == Ordering::Less || rnd.next_double() < pr_change {
                                     solution = new_sol;
+                                    if solution.cmp(&b_sol) == Ordering::Less {
+                                        b_sol = solution.clone();
+                                    }
                                     found = true;
                                     need_rev_back = false;
-                                    println!("new score: {}, big move: {}", solution.dislikes, big_moves);
+                                    println!("new score: {}, big move: {}, pr change: {}, overall best: {}", solution.dislikes, big_moves, pr_change, b_sol.dislikes);
                                     iter += 1;
                                     if DRAW_PICTURES {
                                         drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
@@ -120,5 +126,5 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
             break;
         }
     }
-    solution
+    b_sol
 }
