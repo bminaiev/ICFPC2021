@@ -174,3 +174,4 @@ pub mod drawer;
 pub mod helper;
 pub mod local_optimizer;
 pub mod solver;
+pub mod vizualizer;

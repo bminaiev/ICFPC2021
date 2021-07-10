@@ -253,14 +253,8 @@ int main(int argc, char** argv) {
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
     // debug(ii);
-    if (ii > 0) {
-      found = true;
-      ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
-          out << v.size() << '\n';
-          for (auto& p : v) {
-            out << p.x << " " << p.y << '\n';
-          }
-          out.close();
+    if (false && ii > 0) {
+        found = true;
         return;
     }
     if (ii == nv) {
@@ -348,6 +342,12 @@ int main(int argc, char** argv) {
     if (found) return;
     if (ii == np) {
       debug(v);
+      ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
+      out << v.size() << '\n';
+      for (auto& p : v) {
+        out << p.x << " " << p.y << '\n';
+      }
+      out.close();
       Dfs(0);
       return;
     }

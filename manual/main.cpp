@@ -403,6 +403,21 @@ void doAvg() {
     }
 }
 
+void doShake() {
+    if (capturedPointIndex == -1) return;
+    for (int v : g[capturedPointIndex]) {
+        int cd = (points[v] - points[capturedPointIndex]).abs() + 1;
+        forn(it, 100) {
+            Point np(points[v].x + rand() % cd, points[v].y + rand() % cd);
+            if (ev.c.IsPointInside(np)) {
+                points[v].x = np.x;
+                points[v].y = np.y;
+                break;
+            }
+        }
+    }    
+}
+
 void doFix() {
     forn(i, N) {
         if (mt[i] != -1) continue;
@@ -424,6 +439,8 @@ void doFix() {
         for (int dx = -10; dx <= 10; dx++)
             for (int dy = -10; dy <= 10; dy++) {
                 PointD sh(dx, dy);
+                Point t(points[i].x + dx, points[i].y + dy);
+                if (!ev.c.IsPointInside(t)) continue;
                 double cscore = calcPen(sh);
                 if (cscore < best) {
                     best = cscore;
@@ -483,6 +500,7 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_4) { doAvg(); }
         if (ev.key() == Qt::Key_5) { doReset(); }
         if (ev.key() == Qt::Key_6) { doRepulse(); }
+        if (ev.key() == Qt::Key_7) { doShake(); }
         if (ev.key() == Qt::Key_Z) { check(); }
         if (ev.key() == Qt::Key_B) { doBind(); }
         if (ev.key() == Qt::Key_U) { doUnbind(); }

@@ -1,11 +1,12 @@
 use crate::*;
 use crate::rand::Random;
 use std::collections::BTreeSet;
+use crate::vizualizer::Visualizer;
 
 
 const DRAW_PICTURES: bool = false;
 
-pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random) -> Solution {
+pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
     let n = t.fig.len();
     println!("start local optimizations.. eps = {}, cur score = {}", t.epsilon, solution.dislikes);
     let mut iter = 0;
@@ -23,6 +24,7 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
     }
     let mut b_sol = solution.clone();
     let mut pr_change = 1.0;
+    let mut generation = 0;
     loop {
         let mut perm = vec![];
         for _ in 0..n {
@@ -93,6 +95,11 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                                     iter += 1;
                                     if DRAW_PICTURES {
                                         drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
+                                    }
+                                    generation += 1;
+                                    match viz {
+                                        None => {}
+                                        Some(viz) => if generation % 20 == 0 { Visualizer::render(viz, t, helper, &solution, generation) },
                                     }
                                 }
                                 break;
