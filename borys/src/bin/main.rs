@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::BufReader;
-use borys::{Input, PointInput, OutputFormat, drawer, Solution, Edge, conv_input, save_solution, solver};
+use borys::{Input, PointInput, OutputFormat, drawer, Solution, Edge, conv_input, save_solution, solver, load_test};
 use borys::rand::Random;
 use std::cmp::{max, min, Ordering};
 use std::mem::swap;
@@ -45,12 +45,7 @@ fn main() {
             // }
             println!("Start test {}", problem_id);
             for _ in 0..1 {
-                let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
-                let reader = BufReader::new(file);
-
-                let input: Input = serde_json::from_reader(reader).unwrap();
-
-                let task = conv_input(&input);
+                let task = load_test(problem_id);
                 let res = solve(&task, &mut rnd);
                 match res {
                     None => {

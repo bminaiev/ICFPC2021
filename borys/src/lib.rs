@@ -72,6 +72,12 @@ impl Solution {
         edge_scores.sort_by(|a, b| a.partial_cmp(&b).unwrap().reverse());
         Self { vertices, dislikes, edge_scores }
     }
+
+    pub fn move_one_point(self, v: usize, p: Point, t: &Task, h: &Helper) -> Self {
+        let mut vertices = self.vertices;
+        vertices[v] = p;
+        Self::create(vertices, t, h)
+    }
 }
 
 
@@ -152,6 +158,15 @@ pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &
     writeln!(f_all, "{}: {}", test, solution.dislikes).unwrap();
     f_all.flush().unwrap();
     drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", test));
+}
+
+pub fn load_test(test_id: usize) -> Task {
+    let file = File::open(format!("../inputs/{}.problem", test_id)).unwrap();
+    let reader = BufReader::new(file);
+
+    let input: Input = serde_json::from_reader(reader).unwrap();
+
+    conv_input(&input)
 }
 
 pub mod rand;

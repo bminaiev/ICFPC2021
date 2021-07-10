@@ -6,7 +6,7 @@ pub struct Helper {
     pub is_inside: Vec<Vec<bool>>,
     is_on_edge: Vec<Vec<bool>>,
     hole: Vec<Point>,
-    hole_and_first: Vec<Point>,
+    pub hole_and_first: Vec<Point>,
     pub max_c: i32,
     pub shifts_per_edge: Vec<Vec<Shift>>,
     pub max_dist2: Vec<Vec<i64>>,
@@ -245,6 +245,11 @@ impl Helper {
         let cur_d2 = p1.d2(&p2);
         let delta = (init_d2 - cur_d2).abs();
         // delta / init_d2 <= eps / 10^6
-        return (delta as f64) / (init_d2 as f64) / (t.epsilon as f64 / 1000000.0);
+        let res = (delta as f64) / (init_d2 as f64) / (t.epsilon as f64 / 1000000.0);
+        if res > 1.0 {
+            return res + 3.0;
+        } else {
+            return res;
+        }
     }
 }
