@@ -14,7 +14,7 @@ const DRAW_PICTURES: bool = false;
 
 pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random) -> Solution {
     let n = t.fig.len();
-    println!("start local optimizations.. eps = {}", t.epsilon);
+    println!("start local optimizations.. eps = {}, cur score = {}", t.epsilon, solution.dislikes);
     let mut iter = 0;
     let path = "process";
     fs::remove_dir_all(path).unwrap();
@@ -73,8 +73,8 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                         match bad_edge {
                             None => {
                                 let vertices: Vec<_> = cur_positions.iter().map(|x| x.unwrap()).collect();
-                                let new_sol = Solution::create(vertices, t);
-                                if new_sol.dislikes < solution.dislikes {
+                                let new_sol = Solution::create(vertices, t, helper);
+                                if new_sol.cmp(&solution) == Ordering::Less {
                                     solution = new_sol;
                                     found = true;
                                     need_rev_back = false;

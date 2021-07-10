@@ -14,6 +14,8 @@ const C: i32 = 8;
 const BLACK: Rgb<u8> = Rgb([0u8, 0u8, 0u8]);
 const RED: Rgb<u8> = Rgb([255u8, 0u8, 0u8]);
 const GREEN: Rgb<u8> = Rgb([0u8, 255u8, 0u8]);
+const G: u8 = 222u8;
+const GREY: Rgb<u8> = Rgb([G, G, G]);
 
 fn color_inside(from: Rgb<u8>, to: Rgb<u8>, part: f64) -> Rgb<u8> {
     let mid = |x: u8, y: u8| -> u8 {
@@ -38,6 +40,12 @@ pub fn save_test(task: &Task, solution: &Solution, path: &str) {
 
     let mut img = RgbImage::new(sz as u32, sz as u32);
     imageproc::drawing::draw_filled_rect_mut(&mut img, Rect::at(0, 0).of_size(sz as u32, sz as u32), Rgb([255u8, 255u8, 255u8]));
+    for x in 0..helper.max_c {
+        draw_line(&mut img, &Point { x, y: 0 }, &Point { x, y: helper.max_c as i32 }, GREY);
+    }
+    for y in 0..helper.max_c {
+        draw_line(&mut img, &Point { x: 0, y }, &Point { x: helper.max_c as i32, y }, GREY);
+    }
     for i in 0..task.hole.len() {
         let p1 = task.hole[i];
         let p2 = task.hole[(i + 1) % task.hole.len()];
