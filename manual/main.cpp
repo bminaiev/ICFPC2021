@@ -271,6 +271,59 @@ void doIter() {
     }
 
     forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
+        points[i] = points[i] + forces[i];
+    }
+}
+
+void doRepulse() {
+    vector<PointD> forces(N);
+    
+    set<pii> ee;
+    double avg = 0;
+    for (const Edge& e : edges) {
+        double cd = (points[e.from] - points[e.to]).abs2();
+        ee.insert(pii(e.from, e.to));
+        if (cd > e.D) {
+            double f = (sqrt(cd) - sqrt(e.D)) / sqrt(e.D) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] + v;
+            forces[e.to] = forces[e.to] - v;
+        } else {
+            double f = (sqrt(e.D) - sqrt(cd)) / (sqrt(cd) + 1) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] - v;
+            forces[e.to] = forces[e.to] + v;
+        }
+        avg += sqrt(e.D);
+    }
+
+    avg /= edges.size();
+
+    forn(i, N) forn(j, N) if (j != i) {
+        pii q(i, j);
+        if (ee.find(q) != ee.end()) continue;
+
+        double cd = (points[i] - points[j]).abs();
+        if (cd < avg && cd > 1) {
+            PointD v = points[i] - points[j];
+            v = v / cd;
+            v = v * ((avg / cd) / 10);
+            forces[j] = forces[j] - v;
+            forces[i] = forces[i] + v;
+        }
+    }
+
+    forn(i, N)
+        if (mt[i] != -1) {
+            double cd = (hole[mt[i]] - points[i]).abs();
+            forces[i] = forces[i] + (hole[mt[i]] - points[i]) / (cd + 1) * 0.777;
+        }
+
+    forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
         points[i] = points[i] + forces[i];
     }
 }
@@ -286,6 +339,8 @@ void doPull() {
     } 
 
     forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
         points[i] = points[i] + forces[i];
     }
 }
@@ -315,6 +370,8 @@ void spread() {
         }
 
     forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
         points[i] = points[i] + forces[i];
     }
 }
@@ -343,6 +400,38 @@ void doAvg() {
         for (int x : g[i])
             points[i] = points[i] + points[x];
         points[i] = points[i] / g[i].size();
+    }
+}
+
+void doFix() {
+    forn(i, N) {
+        if (mt[i] != -1) continue;
+
+        auto calcPen = [&](const PointD& sh) -> double {
+            double pen = 0;
+            for (int v : g[i]) {
+                int cd = (points[i] + sh - points[v]).abs2();
+                int od = (srcPoints[i] - srcPoints[v]).abs2();
+                if (abs(cd / double(od) - 1) > E / 1e6) {
+                    pen += abs(sqrt(cd) - sqrt(od));
+                }
+            }
+            return pen;
+        };
+
+        double best = 1e9;
+        PointD bsh(0, 0);
+        for (int dx = -10; dx <= 10; dx++)
+            for (int dy = -10; dy <= 10; dy++) {
+                PointD sh(dx, dy);
+                double cscore = calcPen(sh);
+                if (cscore < best) {
+                    best = cscore;
+                    bsh = sh;
+                }
+            }
+
+        points[i] = points[i] + bsh;
     }
 }
 
@@ -378,24 +467,27 @@ int main(int argc, char* argv[])
 {
     test_id = 1;
     readInput();
-    v.setSize(1800, 1040);
+    v.setSize(2000, 1400);
+    const int TC = 88;
     v.setOnKeyPress([](const QKeyEvent& ev) {
         if (ev.key() == Qt::Key_Escape) { exited = true; }
         if (ev.key() == Qt::Key_S) { saveSolution(); }
         if (ev.key() == Qt::Key_H) { saveHint(); }
         if (ev.key() == Qt::Key_A) { loadSolution(); }
         if (ev.key() == Qt::Key_I) { makeInt(); }
-        if (ev.key() == Qt::Key_O) { test_id--; if (test_id == 0) test_id = 78; readInput(); }
-        if (ev.key() == Qt::Key_P) { test_id++; if (test_id == 79) test_id = 1; readInput(); }
+        if (ev.key() == Qt::Key_O) { test_id--; if (test_id == 0) test_id = TC; readInput(); }
+        if (ev.key() == Qt::Key_P) { test_id++; if (test_id == TC + 1) test_id = 1; readInput(); }
         if (ev.key() == Qt::Key_1) { doIter(); }
         if (ev.key() == Qt::Key_2) { spread(); }
         if (ev.key() == Qt::Key_3) { doPull(); }
         if (ev.key() == Qt::Key_4) { doAvg(); }
         if (ev.key() == Qt::Key_5) { doReset(); }
+        if (ev.key() == Qt::Key_6) { doRepulse(); }
         if (ev.key() == Qt::Key_Z) { check(); }
         if (ev.key() == Qt::Key_B) { doBind(); }
         if (ev.key() == Qt::Key_U) { doUnbind(); }
         if (ev.key() == Qt::Key_F) { bruteforce(); }
+        if (ev.key() == Qt::Key_G) { doFix(); }
     });
 
     v.setOnMouseClick([](const QMouseEvent& ev, double sx, double sy, double wx, double wy) {

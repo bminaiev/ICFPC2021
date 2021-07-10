@@ -130,6 +130,8 @@ vector<int> mt;
 int test_id;
 Evaluator ev;
 vector<vector<int>> g;
+Point bonus;
+string bonusname;
 
 void readInput() {
     const string fname = "../inputs_conv/" + to_string(test_id) + ".problem";
@@ -167,13 +169,18 @@ void readInput() {
     
     cin >> E;
 
+    int B, bp;
+    cin >> B;
+    assert(B == 1);
+    cin >> bonusname >> bp >> bonus.x >> bonus.y;    
+
     poly.resize(H);
     forn(i, H) {
         poly[i].x = round(hole[i].x);
         poly[i].y = round(hole[i].y);
     }
     ev = Evaluator(poly, srcPoints, edgePairs, E);
-    cerr << "read input " << test_id << endl;    
+    cerr << "read input " << test_id << ", contains bonus " << bonusname << " for problem " << bp << endl;
 }
 
 void loadSolution() {

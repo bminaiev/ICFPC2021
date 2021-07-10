@@ -7,6 +7,19 @@ Visualizer v;
 int capturedPointIndex;
 
 void draw() {
+    if (bonusname == "GLOBALIST") {
+        v.p.setPen(yellowPen);
+        v.p.setBrush(yellowBrush);
+    } else if (bonusname == "BREAK_A_LEG") {
+        v.p.setPen(bluePen);
+        v.p.setBrush(blueBrush);
+    } else {
+        v.p.setPen(magentaPen);
+        v.p.setBrush(magentaBrush);
+    }
+
+    v.p.drawEllipse(bonus.x * SCALE - 4, bonus.y * SCALE - 4, 9, 9);
+
     v.p.setPen(darkWhitePen);
     v.p.setBrush(darkWhiteBrush);
     
@@ -23,7 +36,7 @@ void draw() {
     v.p.setPen(grayPen);
     v.p.setBrush(transparentBrush);
     forn(i, N) {
-        v.p.drawEllipse(points[i].x * SCALE - 2, points[i].y * SCALE - 2, 4, 4);
+        v.p.drawEllipse(points[i].x * SCALE - 2, points[i].y * SCALE - 2, 5, 5);
         for (const auto& e : edges) {
             if ((e.from == capturedPointIndex && e.to == i) || 
                 (e.to == capturedPointIndex && e.from == i)) {

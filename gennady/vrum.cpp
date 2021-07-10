@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
     mt19937 rng(60);
-    for (auto iter = 0; iter < (int) 1e6; iter++) {
+    for (auto iter = 0; iter < (int) 1e5; iter++) {
       shuffle(order.begin(), order.end(), rng);
       vector<int> seq(nv, 0);
       for (int i = 0; i < nv; i++) {
@@ -252,7 +252,8 @@ int main(int argc, char** argv) {
   bool found = false;
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
-    if (false && ii > 3) {
+    // debug(ii);
+    if (ii > 0) {
       found = true;
       ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
           out << v.size() << '\n';
