@@ -117,6 +117,8 @@ void debug_out(Head H, Tail... T) {
 #define debug(...) 42
 #endif
 
+const int Z = 1;
+
 const int EPS_COEF = 1000000;
 
 int main(int argc, char** argv) {
@@ -288,7 +290,7 @@ int main(int argc, char** argv) {
           best_v = v;
           debug(best_v);
           debug(score, best_score);
-          ofstream out("../outputs/" + to_string(xid) + ".ans05");
+          ofstream out("../outputs/" + to_string(xid) + ".ans06");
           out << best_v.size() << '\n';
           for (auto& p : best_v) {
             out << p.x << " " << p.y << '\n';
@@ -314,8 +316,8 @@ int main(int argc, char** argv) {
       }
     }
     if (id1 == -1) {
-      for (int x = 48; x >= 44; x--) { // !!!!!!!!!!!!!!!!!!
-        for (int y = 0; y <= max_y; y++) {
+      for (int x = max_x; x >= 0; x-=Z) {
+        for (int y = 0; y <= max_y; y+=Z) {
           if (E.c.IsPointInside(Point(x, y))) {
             v[order[ii]] = Point(x, y);
             bool ok = true;
@@ -348,6 +350,7 @@ int main(int argc, char** argv) {
     }
     if (id2 == -1) {
       for (auto& delta : delta1[id1][order[ii]]) {
+        if (delta.x % Z != 0) continue;
         int x = v[id1].x + delta.x;
         int y = v[id1].y + delta.y;
         if (E.c.IsPointInside(Point(x, y))) {

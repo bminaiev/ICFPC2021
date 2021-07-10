@@ -117,6 +117,8 @@ void debug_out(Head H, Tail... T) {
 #define debug(...) 42
 #endif
 
+const int Z = 3;
+
 const int EPS_COEF = 1000000;
 
 int main(int argc, char** argv) {
@@ -225,7 +227,7 @@ int main(int argc, char** argv) {
   } else {
     auto best_order = order;
     auto best_seq = vector<int>(nv, 0);
-    mt19937 rng(58);
+    mt19937 rng(59);
     for (auto iter = 0; iter < (int) 1e6; iter++) {
       shuffle(order.begin(), order.end(), rng);
       vector<int> seq(2 * nv, 0);
@@ -285,8 +287,8 @@ int main(int argc, char** argv) {
       }
     }
     if (id1 == -1) {
-      for (int x = 0; x <= max_x; x++) {
-        for (int y = 0; y <= max_y; y++) {
+      for (int x = 0; x <= max_x; x+=Z) {
+        for (int y = 0; y <= max_y; y+=Z) {
           if (E.c.IsPointInside(Point(x, y))) {
             v[order[ii]] = Point(x, y);
             bool ok = true;
@@ -319,6 +321,7 @@ int main(int argc, char** argv) {
     }
     if (id2 >= -1) {
       for (auto& delta : delta1[id1][order[ii]]) {
+        if (delta.x % Z != 0) continue;
         int x = v[id1].x + delta.x;
         int y = v[id1].y + delta.y;
         if (E.c.IsPointInside(Point(x, y))) {
