@@ -15,7 +15,7 @@ pub struct Visualizer<'ttf> {
 }
 
 
-const ZOOM: i32 = 10;
+const ZOOM: i32 = 5;
 
 fn color_inside(from: Color, to: Color, mut part: f64) -> Color {
     if part > 1.0 {
@@ -39,6 +39,10 @@ fn calc_sum_errors(task: &Task, helper: &Helper, solution: &Solution) -> f64 {
 }
 
 const GREY: Color = Color::RGB(222u8, 222u8, 222u8);
+
+pub enum UserEvent {
+    IncreaseChangeProb,
+}
 
 impl<'a> Visualizer<'a> {
     pub fn create(helper: &Helper, ttf_context: &'a Sdl2TtfContext) -> Self {
@@ -64,7 +68,7 @@ impl<'a> Visualizer<'a> {
         sdl2::rect::Point::new(p.x * ZOOM, p.y * ZOOM)
     }
 
-    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64) {
+    pub fn render(&mut self, task: &Task, helper: &Helper, solution: &Solution, generation: i64) -> Vec<UserEvent> {
         self.canvas.set_draw_color(Color::WHITE);
         self.canvas.clear();
 
@@ -102,17 +106,23 @@ impl<'a> Visualizer<'a> {
         Self::print_text(&mut self.font, &mut self.canvas, &format!("bad edges: {}", bad_edges), Y_SHIFT * 1);
         Self::print_text(&mut self.font, &mut self.canvas, &format!("dislikes: {}", solution.dislikes), Y_SHIFT * 2);
         Self::print_text(&mut self.font, &mut self.canvas, &format!("generation: {}", generation), Y_SHIFT * 3);
+        Self::print_text(&mut self.font, &mut self.canvas, &format!("crossed edges: {}", solution.crossed_edges), Y_SHIFT * 4);
 
         self.canvas.present();
+        let mut events = vec![];
         for event in self.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } |
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    events.push(UserEvent::IncreaseChangeProb)
+                }
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     assert!(false);
                 }
                 _ => {}
             }
         }
+        return events;
     }
 
 

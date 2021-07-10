@@ -29,7 +29,7 @@ fn on_seg(a: &Point, b: &Point, p: &Point) -> bool {
 }
 
 // [p1..p2] x [p3..p4]
-fn seg_intersect_without_ends(p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
+pub fn seg_intersect_without_ends(p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
     return vec_mul(p1, p2, p3) * vec_mul(p1, p2, p4) < 0
         && vec_mul(p3, p4, p1) * vec_mul(p3, p4, p2) < 0;
 }

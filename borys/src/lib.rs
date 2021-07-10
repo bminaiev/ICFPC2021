@@ -39,6 +39,7 @@ pub struct Solution {
     pub dislikes: i64,
     pub vertices: Vec<Point>,
     pub edge_scores: Vec<f64>,
+    pub crossed_edges: usize,
 }
 
 impl Solution {
@@ -55,6 +56,13 @@ impl Solution {
         }
         return Ordering::Equal;
     }
+
+    pub fn cmp_with_edges(&self, other: &Self) -> Ordering {
+        if self.crossed_edges != other.crossed_edges {
+            return self.crossed_edges.cmp(&other.crossed_edges);
+        }
+        return self.cmp(&other);
+    }
 }
 
 impl Solution {
@@ -70,7 +78,19 @@ impl Solution {
         let mut edge_scores: Vec<_> = t.edges.iter().map(|e|
             h.edge_score(t, e.fr, e.to, &vertices[e.fr], &vertices[e.to])).collect();
         edge_scores.sort_by(|a, b| a.partial_cmp(&b).unwrap().reverse());
-        Self { vertices, dislikes, edge_scores }
+        let mut crossed_edges = 0;
+        for edge1 in t.edges.iter() {
+            for edge2 in t.edges.iter() {
+                let p1 = vertices[edge1.fr];
+                let p2 = vertices[edge1.to];
+                let p3 = vertices[edge2.fr];
+                let p4 = vertices[edge2.to];
+                if helper::seg_intersect_without_ends(&p1, &p2, &p3, &p4) {
+                    crossed_edges += 1;
+                }
+            }
+        }
+        Self { vertices, dislikes, edge_scores, crossed_edges }
     }
 
     pub fn move_one_point(self, v: usize, p: Point, t: &Task, h: &Helper) -> Self {

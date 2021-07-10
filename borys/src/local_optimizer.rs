@@ -1,12 +1,18 @@
 use crate::*;
 use crate::rand::Random;
 use std::collections::BTreeSet;
-use crate::vizualizer::Visualizer;
+use crate::vizualizer::{Visualizer, UserEvent};
 
 
 const DRAW_PICTURES: bool = false;
 
-pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
+
+pub fn optimize(t: &Task, helper: &Helper, solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>) -> Solution {
+    let solution = optimize_internal(t, helper, solution, rnd, viz, true);
+    return optimize_internal(t, helper, solution, rnd, viz, true);
+}
+
+pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Random, viz: &mut Option<Visualizer>, sort_by_crossed_edges: bool) -> Solution {
     let n = t.fig.len();
     println!("start local optimizations.. eps = {}, cur score = {}", t.epsilon, solution.dislikes);
     let mut iter = 0;
@@ -84,7 +90,12 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                             None => {
                                 let vertices: Vec<_> = cur_positions.iter().map(|x| x.unwrap()).collect();
                                 let new_sol = Solution::create(vertices, t, helper);
-                                if new_sol.cmp(&solution) == Ordering::Less || rnd.next_double() < pr_change {
+                                let cmp = if sort_by_crossed_edges {
+                                    new_sol.cmp_with_edges(&solution)
+                                } else {
+                                    new_sol.cmp(&solution)
+                                };
+                                if cmp == Ordering::Less || rnd.next_double() < pr_change {
                                     solution = new_sol;
                                     if solution.cmp(&b_sol) == Ordering::Less {
                                         b_sol = solution.clone();
@@ -99,7 +110,17 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
                                     generation += 1;
                                     match viz {
                                         None => {}
-                                        Some(viz) => if generation % 20 == 0 { Visualizer::render(viz, t, helper, &solution, generation) },
+                                        Some(viz) => if generation % 20 == 0 {
+                                            let events = Visualizer::render(viz, t, helper, &solution, generation);
+                                            for e in events.iter() {
+                                                match e {
+                                                    UserEvent::IncreaseChangeProb => {
+                                                        println!("Update change prob!");
+                                                        pr_change += 0.1;
+                                                    }
+                                                }
+                                            }
+                                        },
                                     }
                                 }
                                 break;
