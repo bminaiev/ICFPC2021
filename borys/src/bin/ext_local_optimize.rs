@@ -140,11 +140,7 @@ pub fn main() {
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let mut vertices: Vec<_> = if LOAD_MY {
-            let file = File::open(format!("../borys/outputs/{}.ans", test)).unwrap();
-            let reader = BufReader::new(file);
-
-            let output: OutputFormat = serde_json::from_reader(reader).unwrap();
-            output.vertices.iter().map(|o| Point { x: o[0], y: o[1] }).collect()
+            load_submission(&format!("../borys/outputs/{}.ans", test))
         } else {
             let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
             if !Path::new(&romka_path).exists() {

@@ -14,7 +14,7 @@ pub struct Figure {
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Bonus {
     pub bonus: String,
     pub problem: usize,
@@ -138,6 +138,7 @@ pub struct Task {
     pub fig: Vec<Point>,
     pub edges: Vec<Edge>,
     pub epsilon: i64,
+    pub bonuses: Vec<Bonus>,
 }
 
 
@@ -149,7 +150,7 @@ pub fn conv_input(t: &Input) -> Task {
     let hole = conv_points(&t.hole);
     let fig = conv_points(&t.figure.vertices);
     let edges: Vec<_> = t.figure.edges.iter().map(|e| Edge { fr: e[0], to: e[1] }).collect();
-    return Task { hole, fig, edges, epsilon: t.epsilon };
+    return Task { hole, fig, edges, epsilon: t.epsilon, bonuses: t.bonuses.clone() };
 }
 
 fn get_old_score(test: usize) -> i64 {
@@ -187,6 +188,14 @@ pub fn load_test(test_id: usize) -> Task {
     let input: Input = serde_json::from_reader(reader).unwrap();
 
     conv_input(&input)
+}
+
+pub fn load_submission(path: &str) -> Vec<Point> {
+    let file = File::open(path).unwrap();
+    let reader = BufReader::new(file);
+
+    let output: OutputFormat = serde_json::from_reader(reader).unwrap();
+    output.vertices.iter().map(|o| Point { x: o[0], y: o[1] }).collect()
 }
 
 pub mod rand;
