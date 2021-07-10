@@ -7,6 +7,7 @@ pub struct Helper {
     hole: Vec<Point>,
     hole_and_first: Vec<Point>,
     pub max_c: i32,
+    pub shifts_per_edge: Vec<Vec<Shift>>,
 }
 
 
@@ -117,7 +118,23 @@ impl Helper {
         }
         let mut hole_and_first = t.hole.clone();
         hole_and_first.push(hole_and_first[0]);
-        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c: max_c as i32 }
+        let mut shifts_per_edge = vec![];
+        let max_c = max_c as i32;
+        for edge in t.edges.iter() {
+            let mut cur_shifts = vec![];
+            let init_d2 = t.fig[edge.fr].d2(&t.fig[edge.to]);
+            for dx in -max_c..=max_c {
+                for dy in -max_c..max_c {
+                    let cur_d2 = (dx as i64) * (dx as i64) + (dy as i64) * (dy as i64);
+                    let delta = (init_d2 - cur_d2).abs();
+                    if delta * 1_000_000 <= t.epsilon * init_d2 {
+                        cur_shifts.push(Shift { dx, dy });
+                    }
+                }
+            }
+            shifts_per_edge.push(cur_shifts);
+        }
+        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c, shifts_per_edge }
     }
 
     pub fn is_valid_position(&self, v: usize, p: &Point, edges: &[Edge], cur_positions: &[Option<Point>], t: &Task) -> bool {

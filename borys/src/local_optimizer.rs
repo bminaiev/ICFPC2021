@@ -1,14 +1,8 @@
 use crate::*;
-use crate::helper::*;
 use crate::rand::Random;
 use std::fs;
 use std::collections::BTreeSet;
 
-#[derive(Copy, Clone)]
-struct Shift {
-    dx: i32,
-    dy: i32,
-}
 
 const DRAW_PICTURES: bool = false;
 
@@ -20,6 +14,15 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
     fs::remove_dir_all(path).unwrap();
     fs::create_dir(path).unwrap();
     drawer::save_test(t, &solution, &format!("{}/{:04}.png", path, iter));
+    let mut small_shifts = vec![];
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            if dx == 0 && dy == 0 {
+                continue;
+            }
+            small_shifts.push(Shift { dx, dy });
+        }
+    }
     loop {
         let mut perm = vec![];
         for _ in 0..n {
@@ -33,28 +36,32 @@ pub fn optimize(t: &Task, helper: &Helper, mut solution: Solution, rnd: &mut Ran
             }
         }
         let mut found = false;
+
         let mut cur_positions: Vec<_> = solution.vertices.iter().map(|x| Some(x.clone())).collect();
         for &big_moves in [false, true].iter() {
+            if big_moves == true {
+                // TODO: remove it back...
+                // break;
+            }
             for &id in perm.iter() {
                 let p = solution.vertices[id];
-                let from_x = if big_moves { 0 } else { p.x - 1 };
-                let to_x = if big_moves { helper.max_c } else { p.x + 2 };
-                let from_y = if big_moves { 0 } else { p.y - 1 };
-                let to_y = if big_moves { helper.max_c } else { p.y + 2 };
-
-                let mut shifts = vec![];
-                for nx in from_x..to_x {
-                    for ny in from_y..to_y {
-                        let shift_x = nx - p.x;
-                        let shift_y = ny - p.y;
-                        shifts.push(Shift { dx: shift_x, dy: shift_y });
+                let mut shifts = &small_shifts;
+                let mut base_point = p;
+                if big_moves {
+                    let mut cur_shifts_size = std::usize::MAX;
+                    for (e_id, edge) in t.edges.iter().enumerate() {
+                        if (edge.fr == id || edge.to == id) && helper.shifts_per_edge[e_id].len() < cur_shifts_size {
+                            shifts = &helper.shifts_per_edge[e_id];
+                            base_point = cur_positions[edge.fr + edge.to - id].unwrap();
+                            cur_shifts_size = shifts.len();
+                        }
                     }
                 }
                 let perm = rnd.gen_perm(shifts.len());
                 let shifts: Vec<_> = perm.iter().map(|id| shifts[*id].clone()).collect();
                 for shift in shifts.iter() {
-                    let shift_x = shift.dx;
-                    let shift_y = shift.dy;
+                    let shift_x = shift.dx - p.x + base_point.x;
+                    let shift_y = shift.dy - p.y + base_point.y;
                     let old_cur_positions = cur_positions.clone();
 
                     let np = Point { x: p.x + shift_x, y: p.y + shift_y };

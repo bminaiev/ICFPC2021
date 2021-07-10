@@ -80,6 +80,13 @@ impl Point {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct Shift {
+    pub dx: i32,
+    pub dy: i32,
+}
+
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Edge {
     pub fr: usize,
