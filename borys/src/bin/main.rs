@@ -35,16 +35,16 @@ fn main() {
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78]).collect();
 
-    let mut rnd = Random::new(23443);
+    let mut rnd = Random::new(2346643);
     for GLOBAL_ITER in 0..1 {
         println!("GLOBAL ITER: {}", GLOBAL_ITER);
-        for problem_id in TASK..=TASK {
+        for problem_id in 85..=85 {
             // if not_interesting_tests.contains(&problem_id) {
             //     println!("Skip test: {}", problem_id);
             //     continue;
             // }
             println!("Start test {}", problem_id);
-            for _ in 0..1000 {
+            for _ in 0..1 {
                 let file = File::open(format!("../inputs/{}.problem", problem_id)).unwrap();
                 let reader = BufReader::new(file);
 

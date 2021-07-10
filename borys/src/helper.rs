@@ -4,6 +4,7 @@ use std::mem::swap;
 
 pub struct Helper {
     pub is_inside: Vec<Vec<bool>>,
+    is_on_edge: Vec<Vec<bool>>,
     hole: Vec<Point>,
     hole_and_first: Vec<Point>,
     pub max_c: i32,
@@ -34,6 +35,10 @@ fn seg_intersect_without_ends(p1: &Point, p2: &Point, p3: &Point, p4: &Point) ->
 }
 
 impl Helper {
+    pub fn is_on_edge(&self, p: &Point) -> bool {
+        self.is_on_edge[p.x as usize][p.y as usize]
+    }
+
     pub fn is_point_inside(&self, p: &Point) -> bool {
         if p.x < 0 || p.x * 2 >= self.is_inside.len() as i32 {
             return false;
@@ -119,6 +124,16 @@ impl Helper {
         }
         let mut hole_and_first = t.hole.clone();
         hole_and_first.push(hole_and_first[0]);
+        let mut is_on_edge = vec![vec![false; max_c]; max_c];
+        for x in 0..max_c {
+            for y in 0..max_c {
+                for e in hole_and_first.windows(2) {
+                    if on_seg(&e[0], &e[1], &Point { x: x as i32, y: y as i32 }) {
+                        is_on_edge[x][y] = true;
+                    }
+                }
+            }
+        }
         let mut shifts_per_edge = vec![];
         let max_c = max_c as i32;
         for edge in t.edges.iter() {
@@ -141,8 +156,8 @@ impl Helper {
         }
         for e in t.edges.iter() {
             let d2 = t.fig[e.fr].d2(&t.fig[e.to]) as f64;
-            let d2 = d2 * (1.0 + t.epsilon as f64 / 1000000.0);
-            let min_d = d2.sqrt() + 1.0;
+            let d2 = (d2 * (1.0 + t.epsilon as f64 / 1000000.0)).floor();
+            let min_d = d2.sqrt();
             if min_d < min_dist[e.fr][e.to] {
                 min_dist[e.fr][e.to] = min_d;
                 min_dist[e.fr][e.to] = min_d;
@@ -164,7 +179,8 @@ impl Helper {
                 max_dist2[i][j] = min_dist[i][j].powf(2.0) as i64;
             }
         }
-        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c, shifts_per_edge, max_dist2 }
+
+        Helper { is_inside, hole: t.hole.clone(), hole_and_first, max_c, shifts_per_edge, max_dist2, is_on_edge }
     }
 
     pub fn is_valid_position(&self, v: usize, p: &Point, edges: &[Edge], cur_positions: &[Option<Point>], t: &Task) -> bool {

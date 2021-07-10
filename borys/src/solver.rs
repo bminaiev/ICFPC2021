@@ -10,9 +10,16 @@ struct NeedToPut {
 const DRAW_PICTURES: bool = false;
 const MAX_TOP_POSITIONS: usize = 2;
 
+// TODO: with bonus?
+#[derive(Ord, PartialOrd, Eq, PartialEq)]
+struct Score {
+    not_on_edge: bool,
+    minus_sum_d2: i64,
+}
+
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
 struct PosWithScore {
-    minus_sum_d2: i64,
+    score: Score,
     pos: Point,
 }
 
@@ -100,7 +107,9 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
                 Some(another_p) => { sum_d2 += another_p.d2(pos); }
             }
         }
-        PosWithScore { minus_sum_d2: -sum_d2, pos: *pos }
+        let on_edge = helper.is_on_edge(pos);
+        let score = Score { minus_sum_d2: -sum_d2, not_on_edge: !on_edge };
+        PosWithScore { score, pos: *pos }
     }).collect();
     positions_with_score.sort();
     while positions_with_score.len() > MAX_TOP_POSITIONS {
