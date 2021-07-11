@@ -6,7 +6,7 @@ use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
 
-const TEST_ID: usize = 68;
+const TEST_ID: usize = 75;
 
 fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool], depth: usize, max_depth: usize) -> bool {
     for edge in t.edges.iter() {
