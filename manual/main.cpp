@@ -450,6 +450,12 @@ void doFix() {
     forn(i, N) {
         if (mt[i] != -1) continue;
 
+        vector<long double> mni(H, 1e9);
+        forn(h, H)
+            forn(j, N) {
+                if (i != j) mni[h] = min(mni[h], (points[j] - hole[h]).abs2());
+            }
+
         auto calcPen = [&](const PointD& sh) -> double {
             PointD pp = points[i] + sh;
             double pen = 0;
@@ -461,13 +467,8 @@ void doFix() {
                 }
             }
             pen *= 1e5;
-            for (const PointD& h : hole) {
-                long double bd = 1e9;
-                forn(j, N) {
-                    if (i == j) bd = min(bd, (pp - points[j]).abs2());
-                    else bd = min(bd, (points[i] - points[j]).abs2());
-                }
-                pen += bd;
+            forn(h, H) {
+                pen += min(mni[h], (pp - hole[h]).abs2());
             }
             return pen;
         };
@@ -540,7 +541,7 @@ int main(int argc, char* argv[])
     test_id = 1;
     readInput();
     v.setSize(2000, 1400);
-    const int TC = 88;
+    const int TC = 106;
     v.setOnKeyPress([](const QKeyEvent& ev) {
         if (ev.key() == Qt::Key_Escape) { exited = true; }
         if (ev.key() == Qt::Key_S) { saveSolution(); }
