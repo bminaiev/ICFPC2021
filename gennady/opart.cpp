@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
   in_ans.close();
   int best_score = E.eval(v);
 
-  const vector<int> test = {47, 42, 51, 54};
+  const vector<int> test = {195, 196, 186, 193, 199, 203, 172, 161, 198, 177};
   for (int vd : test) v[vd] = Point(-1, -1);
 
   vector<bool> taken(nv, false);
@@ -336,7 +336,7 @@ int main(int argc, char** argv) {
     if (ii == nv) {
       int score = (int) E.eval(v);
       if (score != -1) {
-        if (score < best_score) {
+        // if (score < best_score) {
           best_score = score;
           best_v = v;
           debug(best_v);
@@ -347,7 +347,8 @@ int main(int argc, char** argv) {
             out << p.x << " " << p.y << '\n';
           }
           out.close();
-        }
+          exit(0);
+        // }
       }
       return;
     }

@@ -263,7 +263,26 @@ int main(int argc, char** argv) {
       bool ok = true;
       for (size_t jj = 0; jj < g[i].size(); jj++) {
         int j = g[i][jj];
-        if (v[j].x == -1) continue;
+        if (v[j].x == -1) {
+          // bool okj = false;
+          // for (const auto& to : inner) {
+          //   if (E.c.IsSegmentInside(tp, to)) {
+          //     int new_len = (tp - to).abs2();
+          //     int old_len = (vertices[i] - vertices[j]).abs2();
+          //     long long num = abs(new_len - old_len);
+          //     long long den = old_len;
+          //     if (num * EPS_COEF <= eps * den) {
+          //       okj = true;
+          //       break;
+          //     }
+          //   }            
+          // }
+          // if (!okj) { 
+          //   ok = false;
+          //   break;
+          // }
+          continue;
+        }
         if (!E.c.IsSegmentInside(tp, v[j])) {
           ok = false;
           break;
@@ -288,9 +307,10 @@ int main(int argc, char** argv) {
           ok = false;
           break;
         }
-      }      
+      }
       if (ok) oknp[i].push_back(tp);
     }
+    cerr << i << " - " << oknp[i].size() << endl;
   }
 
   vector<int> order(nv);
@@ -349,9 +369,21 @@ int main(int argc, char** argv) {
     debug(best_order);
     debug(best_seq);
     order = best_order;
+
+    vector<int> maxedge(nv);
+    for (const auto& e : edges) {
+      int d = (vertices[e.first] - vertices[e.second]).abs2();
+      maxedge[e.first] = max(maxedge[e.first], d);
+      maxedge[e.second] = max(maxedge[e.second], d);
+    }
+
+    sort(order.begin(), order.end(), [&](int i, int j) { return maxedge[i] > maxedge[j]; });
+    debug(order);
+    // debug(best_seq);
+    
   }
 
-  const bool checksort = true;
+  const bool checksort = false;
 
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
@@ -427,6 +459,7 @@ int main(int argc, char** argv) {
     }
   };
 
+  int bounds = 0;
   function<void(int)> DfsZero = [&](int ii) {
     if (found) return;
     // cerr << ii << " of " << np << endl;
@@ -439,14 +472,16 @@ int main(int argc, char** argv) {
     //   out.close();
     // }
     if (ii == np) {
-      debug(v);
+      // debug(v);
       ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
       out << v.size() << '\n';
       for (auto& p : v) {
         out << p.x << " " << p.y << '\n';
       }
       out.close();
-      Dfs(0);
+      bounds++;
+      if (bounds % 1000 == 0) cerr << bounds << endl;
+      // Dfs(0);
       return;
     }
     if (test[ii] != -1) {
@@ -506,7 +541,7 @@ int main(int argc, char** argv) {
   };
   
   DfsZero(0);
-  cout << "done" << '\n';
+  cout << "done - " << bounds << '\n';
 
 /*  ofstream out("../outputs/" + to_string(xid) + ".ans");
   out << best_v.size() << '\n';
