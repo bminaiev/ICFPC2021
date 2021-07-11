@@ -11,8 +11,12 @@ for row in r.text.split("</tr><tr>"):
         continue
     tok = row.replace("<", " ").replace(">", " ").split();
     test_id = tok[3]
-    our = int(tok[7])
-    best = int(tok[10])
+    try:
+        our = int(tok[7])
+        best = int(tok[10])
+    except:
+        our = 1000000
+        best = 0
 
     fin = "inputs/{0}.problem".format(test_id)
     with open(fin) as f:
