@@ -208,6 +208,13 @@ int main(int argc, char** argv) {
             }
           }
 
+  vector<vector<int>> nei(nv);
+  for (auto& e : edges) {
+    int i = e.first;
+    int j = e.second;
+    nei[i].push_back(j);
+    nei[j].push_back(i);
+  }
   mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
   double init_temp = 100000;
   double final_temp = 0.1;
@@ -232,7 +239,7 @@ int main(int argc, char** argv) {
         moved[i] = true;
         bool fail = false;
         for (int b = 0; b < (int) que.size(); b++) {
-          for (int j = 0; j < nv; j++) {
+          for (int j : nei[que[b]]) {
             if (has_edge[que[b]][j]) {
               if (!moved[j]) {
                 bool bad_len = false;
@@ -276,33 +283,31 @@ int main(int argc, char** argv) {
           continue;
         }
         double func = 0;
-        for (int i = 0; i < nv; i++) {
-          for (int j = i + 1; j < nv; j++) {
-            if (has_edge[i][j]) {
-              Point new_vi = v[i] + (moved[i] ? Point(dx, dy) : Point(0, 0));
-              Point new_vj = v[j] + (moved[j] ? Point(dx, dy) : Point(0, 0));
-              int old_now = (v[j] - v[i]).abs2();
-              int now = (new_vj - new_vi).abs2();
-              int old = (vertices[j] - vertices[i]).abs2();
-              double old_ratio = 1.0 * old_now / old;
-              double ratio = 1.0 * now / old;
-              if (ratio > 1 + 1.0 * eps / EPS_COEF + 1e-9) {
-                debug(i, j, que, moved, ratio, eps, old_now, now, old);
-                assert(false);
+        for (auto& e : edges) {
+          int i = e.first;
+          int j = e.second;
+          Point new_vi = v[i] + (moved[i] ? Point(dx, dy) : Point(0, 0));
+          Point new_vj = v[j] + (moved[j] ? Point(dx, dy) : Point(0, 0));
+          int old_now = (v[j] - v[i]).abs2();
+          int now = (new_vj - new_vi).abs2();
+          int old = (vertices[j] - vertices[i]).abs2();
+          double old_ratio = 1.0 * old_now / old;
+          double ratio = 1.0 * now / old;
+          if (ratio > 1 + 1.0 * eps / EPS_COEF + 1e-9) {
+            debug(i, j, que, moved, ratio, eps, old_now, now, old);
+            assert(false);
 //                ok = false;
 //                break;
-              }
-              if (ratio < 1 - 1.0 * eps / EPS_COEF - 1e-9) {
-                debug(i, j, que, moved, ratio, eps, old_now, now, old);
-                assert(false);
-//                ok = false;
-//                break;
-              }
-              auto z = abs(ratio - 1) / (1.0 * eps / EPS_COEF);
-              auto old_z = abs(old_ratio - 1) / (1.0 * eps / EPS_COEF);
-              func += 0.05 * (pow(z, 2) - pow(old_z, 2)) * (ITERS - outer) / ITERS;
-            }
           }
+          if (ratio < 1 - 1.0 * eps / EPS_COEF - 1e-9) {
+            debug(i, j, que, moved, ratio, eps, old_now, now, old);
+            assert(false);
+//                ok = false;
+//                break;
+          }
+/*              auto z = abs(ratio - 1) / (1.0 * eps / EPS_COEF);
+              auto old_z = abs(old_ratio - 1) / (1.0 * eps / EPS_COEF);
+              func += 0.00 * (pow(z, 2) - pow(old_z, 2)) * (ITERS - outer) / ITERS;*/
         }
 /*        if (!ok) {
           continue;
