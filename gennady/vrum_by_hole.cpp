@@ -383,6 +383,10 @@ int main(int argc, char** argv) {
         }
         
         int j = order[jj];
+        if (j < i && v[j].x > v[i].x) {
+          ok = false;
+          break;
+        }
         auto dist = (v[i] - v[j]).abs2();
         if (dist > max_dist[i][j] * max_dist[i][j] + 1e-9) {
           ok = false;
@@ -408,6 +412,7 @@ int main(int argc, char** argv) {
         out << p.x << " " << p.y << '\n';
       }
       out.close();
+      cerr << "saved to " << xid << ".ans\n";
       Dfs(0);
       return;
     }
@@ -430,6 +435,10 @@ int main(int argc, char** argv) {
               ok = false;
               break;
             }
+          }
+          if (j < i && v[j].x > v[i].x) {
+            ok = false;
+            break;
           }
           if (has_edge[i][j]) {
             if (!E.c.IsSegmentInside(v[i], v[j])) {

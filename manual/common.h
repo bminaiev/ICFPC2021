@@ -171,8 +171,10 @@ void readInput() {
 
     int B, bp;
     cin >> B;
-    assert(B == 1);
-    cin >> bonusname >> bp >> bonus.x >> bonus.y;    
+    forn(ib, B) {
+        cin >> bonusname >> bp >> bonus.x >> bonus.y;    
+        cerr << "contains bonus " << bonusname << " for problem " << bp << endl;
+    }
 
     poly.resize(H);
     forn(i, H) {
@@ -180,7 +182,7 @@ void readInput() {
         poly[i].y = round(hole[i].y);
     }
     ev = Evaluator(poly, srcPoints, edgePairs, E);
-    cerr << "read input " << test_id << ", contains bonus " << bonusname << " for problem " << bp << endl;
+    cerr << "read input " << test_id << endl;
 }
 
 void loadSolution() {

@@ -232,10 +232,15 @@ int main(int argc, char** argv) {
   auto ans_v = v;
   debug(nv, np, eps);
 
-  for (int mv = 0; mv < nv; mv++) {
+  // for (int mv = 0; mv < nv; mv++) {
+  for (int me = 0; me < ne; me++) {
     v = ans_v;
-    vector<int> test = g[mv];
-    test.push_back(mv);
+    vector<int> test = g[edges[me].first];
+    for (int qv : g[edges[me].second]) test.push_back(qv);
+    sort(test.begin(), test.end());
+    test.resize(unique(test.begin(), test.end()) - test.begin());
+    // vector<int> test = g[mv];
+    // test.push_back(mv);
     debug(test);
     for (int vd : test) v[vd] = Point(-1, -1);
 
@@ -246,6 +251,7 @@ int main(int argc, char** argv) {
 
     vector<vector<Point>> oknp(nv);
     long long prod = 1;
+    const size_t KO = 422;
     for (int i = 0; i < nv; i++) {
       if (taken[i]) continue;
       for (const auto& tp : inner) {
@@ -276,12 +282,17 @@ int main(int argc, char** argv) {
         }      
         if (ok) oknp[i].push_back(tp);
       }
+      if (oknp[i].size() > KO) {
+        sort(oknp[i].begin(), oknp[i].end(), [&v, &i](const Point& a, const Point& b) { return (a-v[i]).abs2() < (b-v[i]).abs2(); });
+        oknp[i].resize(KO);
+      }
       cerr << i << " - " << oknp[i].size() << endl;
+      
       prod = prod * sqrt(oknp[i].size());
     }
 
     long long difficulty = prod * nv;
-    if (difficulty > 400000) {
+    if (difficulty > 800000000) {
       cerr << "=== skip this test, difficulty = " << difficulty << "\n";
       continue;
     } else {
@@ -411,7 +422,8 @@ int main(int argc, char** argv) {
     };
 
     Dfs(0);
-    cout << "done for " << mv << " of " << nv << ", best_score = " << best_score << endl;
+    // cout << "done for " << mv << " of " << nv << ", best_score = " << best_score << endl;
+    cout << "done for " << me << " of " << ne << ", best_score = " << best_score << endl;
   }
 
   cout << "totally done\n";
