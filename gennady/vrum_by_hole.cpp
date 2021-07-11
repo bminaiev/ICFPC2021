@@ -330,6 +330,8 @@ int main(int argc, char** argv) {
     order = best_order;
   }
 
+  const bool checksort = true;
+
   function<void(int)> Dfs = [&](int ii) {
     if (found) return;
     // cerr << ii << " of " << nv << endl;
@@ -383,7 +385,7 @@ int main(int argc, char** argv) {
         }
         
         int j = order[jj];
-        if (j < i && v[j].x > v[i].x) {
+        if (j < i && v[j].x > v[i].x && checksort) {
           ok = false;
           break;
         }
@@ -436,7 +438,7 @@ int main(int argc, char** argv) {
               break;
             }
           }
-          if (j < i && v[j].x > v[i].x) {
+          if (j < i && v[j].x > v[i].x && checksort) {
             ok = false;
             break;
           }

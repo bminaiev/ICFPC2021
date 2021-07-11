@@ -15,8 +15,8 @@ for row in r.text.split("</tr><tr>"):
         our = int(tok[7])
         best = int(tok[10])
     except:
-        our = 1000000
-        best = 0
+        our = -1
+        best = int(tok[9])
 
     fin = "inputs/{0}.problem".format(test_id)
     with open(fin) as f:
@@ -26,12 +26,12 @@ for row in r.text.split("</tr><tr>"):
         edges = len(js["figure"]["edges"])
         coeff = math.log(holes * vertices * edges / 6.0) / math.log(2.0)
 
-    score = math.ceil(1000 * coeff * math.sqrt((best + 1.0) / (our + 1.0)))
+    score = math.ceil(1000 * coeff * math.sqrt((best + 1.0) / (our + 1.0))) if our >= 0 else 0
     best_score = math.ceil(1000 * coeff)
     loss = "- best!"
     if best_score > score:
         loss = "({0} lost)".format(best_score - score)
-    print("{0:3s} | {1:5d} | {2:5d} = {3:5d} of {4} {5}".format(test_id, our, best, score, best_score, loss))
+    print("{0:3s} | {1:5d} | {2:6d} = {3:6d} of {4} {5} {6}".format(test_id, our, best, score, best_score, "#" * ((best_score - score + 499) // 500), loss))
     total += score
     total_best += best_score
 
