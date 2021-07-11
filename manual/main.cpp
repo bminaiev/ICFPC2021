@@ -273,6 +273,7 @@ void doIter() {
     forn(i, N) {
         double m = forces[i].abs();
         if (m > 20) forces[i] = forces[i] / m * 20;
+        if (glue[i]) forces[i] = PointD(0, 0);
         points[i] = points[i] + forces[i];
     }
 }
@@ -299,6 +300,7 @@ void doIterWithMt() {
         double m = forces[i].abs();
         if (m > 20) forces[i] = forces[i] / m * 20;
         if (mt[i] != -1) forces[i] = PointD(0, 0);
+        if (glue[i]) forces[i] = PointD(0, 0);
         points[i] = points[i] + forces[i];
     }
 }
@@ -350,6 +352,7 @@ void doRepulse() {
     forn(i, N) {
         double m = forces[i].abs();
         if (m > 20) forces[i] = forces[i] / m * 20;
+        if (glue[i]) forces[i] = PointD(0, 0);
         points[i] = points[i] + forces[i];
     }
 }
@@ -367,6 +370,7 @@ void doPull() {
     forn(i, N) {
         double m = forces[i].abs();
         if (m > 20) forces[i] = forces[i] / m * 20;
+        if (glue[i]) forces[i] = PointD(0, 0);
         points[i] = points[i] + forces[i];
     }
 }
@@ -398,6 +402,7 @@ void spread() {
     forn(i, N) {
         double m = forces[i].abs();
         if (m > 20) forces[i] = forces[i] / m * 20;
+        if (glue[i]) forces[i] = PointD(0, 0);
         points[i] = points[i] + forces[i];
     }
 }
@@ -421,7 +426,7 @@ void check() {
 
 void doAvg() {
     forn(i, N) {
-        if (mt[i] != -1) continue;
+        if (mt[i] != -1 || glue[i]) continue;
         points[i] = PointD(0, 0);
         for (int x : g[i])
             points[i] = points[i] + points[x];
@@ -432,7 +437,7 @@ void doAvg() {
 void doShake() {
     if (capturedPointIndex == -1) return;
     for (int v : g[capturedPointIndex]) {
-        if (mt[v] != -1) continue;
+        if (mt[v] != -1 || glue[v]) continue;
         int cd = (points[v] - points[capturedPointIndex]).abs();
         cd = cd / 2 + 1;
         forn(it, 100) {
@@ -448,7 +453,7 @@ void doShake() {
 
 void doFix() {
     forn(i, N) {
-        if (mt[i] != -1) continue;
+        if (mt[i] != -1 || glue[i]) continue;
 
         vector<long double> mni(H, 1e9);
         forn(h, H)
@@ -498,6 +503,11 @@ void doReset() {
     }
 }
 
+void doGlue() {
+    if (capturedPointIndex == -1) return;
+    glue[capturedPointIndex] ^= 1;
+}
+
 void doBind() {
     if (capturedPointIndex == -1) return;
 
@@ -526,7 +536,8 @@ void doBindAll() {
             }
         }
 
-        mt[cpp] = bd < 27 ? bi : -1;
+        mt[cpp] = bd < 5 ? bi : -1;
+        glue[cpp] = bd < 1;
     }
 }
 
@@ -536,6 +547,47 @@ void doMove() {
     }
 }
 
+void doSortX() {
+    vector<PointD> forces(N);
+    
+    for (const Edge& e : edges) {
+        double cd = (points[e.from] - points[e.to]).abs2();
+        if (cd > e.D) {
+            double f = (sqrt(cd) - sqrt(e.D)) / sqrt(e.D) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] + v;
+            forces[e.to] = forces[e.to] - v;
+        } else {
+            double f = (sqrt(e.D) - sqrt(cd)) / (sqrt(cd) + 1) * 0.1;
+            PointD v = (points[e.to] - points[e.from]) * f;
+            forces[e.from] = forces[e.from] - v;
+            forces[e.to] = forces[e.to] + v;
+        }
+    }
+
+    forn(i, N)
+        if (mt[i] != -1) {
+            double cd = (hole[mt[i]] - points[i]).abs();
+            forces[i] = forces[i] + (hole[mt[i]] - points[i]) / (cd + 1) * 0.32;
+        }    
+    forn(i, N)
+        if (!glue[i]) {
+            int l = i, r = i;
+            while (l >= 0 && !glue[l]) l--;
+            if (l < 0) l = 0;
+            while (r < N && !glue[r]) r++;
+            if (r == N) r = N - 1;
+            if (points[i].x < points[l].x) forces[i].x += (points[l].x - points[i].x) / 7;
+            if (points[i].x > points[r].x) forces[i].x += (points[r].x - points[i].x) / 7;            
+        }
+
+    forn(i, N) {
+        double m = forces[i].abs();
+        if (m > 20) forces[i] = forces[i] / m * 20;
+        if (glue[i]) forces[i] = PointD(0, 0);
+        points[i] = points[i] + forces[i];
+    }
+}
 
 void doUnbind() {
     if (capturedPointIndex == -1) return;
@@ -565,13 +617,17 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_7) { doShake(); }
         if (ev.key() == Qt::Key_8) { doIterWithMt(); }
         if (ev.key() == Qt::Key_Z) { check(); }
-        if (ev.key() == Qt::Key_X) { showIds = (showIds + 1) % 4; }
+        if (ev.key() == Qt::Key_V) { showIds = (showIds + 1) % 4; }
         if (ev.key() == Qt::Key_B) { doBind(); }
         if (ev.key() == Qt::Key_M) { doBindAll(); }
         if (ev.key() == Qt::Key_U) { doUnbind(); }
         if (ev.key() == Qt::Key_F) { bruteforce(); }
         if (ev.key() == Qt::Key_G) { doFix(); }
         if (ev.key() == Qt::Key_Y) { doMove(); }
+        if (ev.key() == Qt::Key_R) { curVID = (curVID + 1) % N; }
+        if (ev.key() == Qt::Key_E) { curVID = (curVID + N - 1) % N; }
+        if (ev.key() == Qt::Key_K) { doSortX(); }
+        if (ev.key() == Qt::Key_X) { doGlue(); }
     });
 
     v.setOnMouseClick([](const QMouseEvent& ev, double sx, double sy, double wx, double wy) {
@@ -584,7 +640,7 @@ int main(int argc, char* argv[])
 
         if (bd < 10) {
             capturedPointIndex = bi;
-            cerr << "capture " << bi << endl;
+            cerr << "capture " << bi << " at " << to_string(points[bi]) << endl;
         }
     });
 

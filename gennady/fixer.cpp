@@ -4,7 +4,7 @@
 **/
 #undef _GLIBCXX_DEBUG
 
-const bool can_move_from_holes = true;
+const bool can_move_from_holes = false;
 
 #include <chrono>
 #include <random>

@@ -6,6 +6,7 @@
 Visualizer v;
 int capturedPointIndex;
 int showIds;
+int curVID;
 
 void draw() {
     if (bonusname == "GLOBALIST") {
@@ -39,9 +40,12 @@ void draw() {
     v.p.setPen(grayPen);
     v.p.setBrush(transparentBrush);
     forn(i, N) {
-        if (showIds & 2)
+        if (showIds & 2) {
+            v.p.setFont(QFont("Tahoma", i == curVID ? 20 : 10));
             v.p.drawText(points[i].x * SCALE - 10, points[i].y * SCALE - 10, QString::number(i));
-        v.p.drawEllipse(points[i].x * SCALE - 2, points[i].y * SCALE - 2, 5, 5);
+        }
+        const int R = 2 + glue[i] * 5;
+        v.p.drawEllipse(points[i].x * SCALE - R, points[i].y * SCALE - R, 2*R + 1, 2*R + 1);
         for (const auto& e : edges) {
             if ((e.from == capturedPointIndex && e.to == i) || 
                 (e.to == capturedPointIndex && e.from == i)) {

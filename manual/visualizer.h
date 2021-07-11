@@ -77,13 +77,13 @@ protected:
         } else if (event->key() == Qt::Key_Minus) {
             scalex /= SCALE_COEFF;
             scaley /= SCALE_COEFF;
-        } else if (event->key() == Qt::Key_Left || event->key() == Qt::Key_H) {
+        } else if (event->key() == Qt::Key_Left) {
             movex -= MOVE_COEFF / scalex;
-        } else if (event->key() == Qt::Key_Right || event->key() == Qt::Key_L) {
+        } else if (event->key() == Qt::Key_Right) {
             movex += MOVE_COEFF / scalex;
-        } else if (event->key() == Qt::Key_Up || event->key() == Qt::Key_K) {
+        } else if (event->key() == Qt::Key_Up) {
             movey -= MOVE_COEFF / scaley;
-        } else if (event->key() == Qt::Key_Down || event->key() == Qt::Key_J) {
+        } else if (event->key() == Qt::Key_Down) {
             movey += MOVE_COEFF / scaley;
         } else if (event->key() == Qt::Key_0) {
             scalex = 2.5;

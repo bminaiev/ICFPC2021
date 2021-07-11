@@ -126,7 +126,7 @@ vector<Edge> edges;
 vector<pii> edgePairs;
 vector<PointD> hole;
 vector<Point> poly;
-vector<int> mt;
+vector<int> mt, glue;
 int test_id;
 Evaluator ev;
 vector<vector<int>> g;
@@ -160,6 +160,7 @@ void readInput() {
         points[i].y = srcPoints[i].y;
     }
     mt.assign(N, -1);
+    glue.assign(N, 0);
 
     forn(i, M) {
         edges[i].D = (points[edges[i].from] - points[edges[i].to]).abs2();

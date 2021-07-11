@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
 
     vector<vector<Point>> oknp(nv);
     long long prod = 1;
-    const size_t KO = 222;
+    const size_t KO = 111;
     for (int i = 0; i < nv; i++) {
       if (taken[i]) continue;
       for (const auto& tp : inner) {
