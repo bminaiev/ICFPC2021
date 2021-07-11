@@ -408,6 +408,7 @@ int main(int argc, char** argv) {
         out << p.x << " " << p.y << '\n';
       }
       out.close();
+      cerr << "saved to " << xid << ".ans\n";
       Dfs(0);
       return;
     }

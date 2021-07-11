@@ -22,11 +22,11 @@ class Checker {
       max_x = -1;
       max_y = -1;
       for (int i = 0; i < n; i++) {
-        assert(v[i].x >= 0 && v[i].y >= 0);
+        // assert(v[i].x >= 0 && v[i].y >= 0);
         max_x = std::max(max_x, v[i].x);
         max_y = std::max(max_y, v[i].y);
       }
-      assert(max_x <= 1000 && max_y <= 1000);
+      assert(max_x <= 2000 && max_y <= 2000);
       inside.assign(2 * max_x + 1, std::vector<bool>(2 * max_y + 1));
       for (int x = 0; x <= 2 * max_x; x++) {
         for (int y = 0; y <= 2 * max_y; y++) {
