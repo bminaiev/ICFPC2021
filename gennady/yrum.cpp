@@ -177,10 +177,10 @@ int main(int argc, char** argv) {
     has_edge[e.first][e.second] = has_edge[e.second][e.first] = true;
   }
 
-  for (int very_outer = 0; very_outer < 100; very_outer++) {
+  for (int very_outer = 0; very_outer < 3; very_outer++) {
 
   vector<Point> v(nv, Point(-1, -1));
-  ifstream in_ans("../outputs/" + to_string(xid) + ".ans");
+  ifstream in_ans("../outputs_romka/" + to_string(xid) + ".ans");
   int nv_test;
   in_ans >> nv_test;
   assert(nv == nv_test);
@@ -364,7 +364,7 @@ int main(int argc, char** argv) {
   }
   debug(E.eval(v), best_score);
 
-  ofstream out("../outputs/" + to_string(xid) + ".ans");
+  ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
   out << best_v.size() << '\n';
   for (auto& p : best_v) {
     out << p.x << " " << p.y << '\n';

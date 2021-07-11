@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
 
     vector<vector<Point>> oknp(nv);
     long long prod = 1;
-    const size_t KO = 422;
+    const size_t KO = 222;
     for (int i = 0; i < nv; i++) {
       if (taken[i]) continue;
       for (const auto& tp : inner) {
@@ -292,8 +292,8 @@ int main(int argc, char** argv) {
     }
 
     long long difficulty = prod * nv;
-    if (difficulty > 800000000) {
-      cerr << "=== skip this test, difficulty = " << difficulty << "\n";
+    if (difficulty > 1e8) {
+      cerr << ">>> skip this test, difficulty = " << difficulty << " <<<\n";
       continue;
     } else {
       cerr << "difficulty = " << difficulty << endl;

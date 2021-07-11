@@ -4,7 +4,7 @@
 **/
 #undef _GLIBCXX_DEBUG
 
-const bool can_move_from_holes = false;
+const bool can_move_from_holes = true;
 
 #include <chrono>
 #include <random>
@@ -140,15 +140,11 @@ int main(int argc, char** argv) {
     cerr << "input " << xid << ".problem doesn't exist (check relative path?)" << '\n';
     return 0;
   }
-
   
   
   
   
-  
-  string FILENAME = "../outputs/" + to_string(xid) + ".anst";
-
-
+  string FILENAME = "../outputs_romka/" + to_string(xid) + ".ans";
 
 
 

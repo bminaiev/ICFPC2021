@@ -530,6 +530,12 @@ void doBindAll() {
     }
 }
 
+void doMove() {
+    forn(i, N) {
+        points[i].x -= 1;
+    }
+}
+
 
 void doUnbind() {
     if (capturedPointIndex == -1) return;
@@ -565,6 +571,7 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_U) { doUnbind(); }
         if (ev.key() == Qt::Key_F) { bruteforce(); }
         if (ev.key() == Qt::Key_G) { doFix(); }
+        if (ev.key() == Qt::Key_Y) { doMove(); }
     });
 
     v.setOnMouseClick([](const QMouseEvent& ev, double sx, double sy, double wx, double wy) {
