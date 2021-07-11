@@ -2,7 +2,7 @@ use borys::{load_test, load_submission, Point};
 use std::cmp::min;
 
 fn main() {
-    for test_id in 1..=88 {
+    for test_id in 1..=132 {
         let task = load_test(test_id);
         let submit_vertices = load_submission(&format!("../download_outputs/{}.ans", test_id));
 
@@ -16,6 +16,9 @@ fn main() {
                 }
             }
             println!("for test {}, d2 to closest point: {}", test_id, min_d2);
+            if bonus.problem == 81 {
+                println!("can get bonus {:?} for test 81 if solve cool task: {}", bonus, test_id);
+            }
         }
     }
 }

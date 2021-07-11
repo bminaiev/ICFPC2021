@@ -54,8 +54,11 @@ pub enum UserEvent {
     Selected(usize),
     Shift(Shift),
     RunLocalOptimizations,
+    RunRecSearch,
+    RunRecSearchSelected,
     MovePoint(Point),
     Disable,
+    Reput,
 }
 
 pub struct AdditionalState {
@@ -132,11 +135,36 @@ impl<'a> Visualizer<'a> {
             let p2 = Self::conv_point(self.zoom, &solution.vertices[edge.to]);
             let score = helper.edge_score(&task, edge.fr, edge.to, &solution.vertices[edge.fr], &solution.vertices[edge.to]);
             if score > 1.0 {
+                let cur_d2 = solution.vertices[edge.fr].d2(&solution.vertices[edge.to]);
+                let expected_d2 = task.fig[edge.fr].d2(&task.fig[edge.to]);
+                let diff = (cur_d2 - expected_d2) as f64 / (expected_d2 as f64);
+                let center = Point { x: (solution.vertices[edge.fr].x + solution.vertices[edge.to].x) / 2, y: (solution.vertices[edge.fr].y + solution.vertices[edge.to].y) / 2 };
+                let center_conv = Self::conv_point(self.zoom, &center);
+                Self::print_text(&mut self.font, &mut self.canvas, &format!("{:.02}", diff), center_conv.x, center_conv.y);
+
                 bad_edges += 1;
             }
-            let color = color_inside(Color::GREEN, Color::RED, score);
+            let mut color = color_inside(Color::GREEN, Color::RED, score);
+            if state.is_some() && state.unwrap().selected.is_some() {
+                let v = state.unwrap().selected.unwrap();
+                if color == Color::GREEN && (edge.fr == v || edge.to == v) {
+                    color = Color::BLUE;
+                }
+            }
             self.canvas.set_draw_color(color);
             self.canvas.draw_line(p1, p2).unwrap();
+        }
+
+        {
+            let mut my_sum_diffs = 0.0;
+            for edge in task.edges.iter() {
+                let my_d2 = solution.vertices[edge.fr].d2(&solution.vertices[edge.to]) as f64;
+                let expected_d2 = task.fig[edge.fr].d2(&task.fig[edge.to]) as f64;
+                let diff = (my_d2 / expected_d2 - 1.0).abs();
+                my_sum_diffs += diff;
+            }
+            let can_sum_diff = task.edges.len() as f64 * task.epsilon as f64 / 1000000.0;
+            Self::print_text(&mut self.font, &mut self.canvas, &format!("if globalist: sum = {:.03}, at most {:.03}", my_sum_diffs, can_sum_diff), 0, Y_SHIFT * 6);
         }
 
         const Y_SHIFT: i32 = 30;
@@ -202,7 +230,6 @@ impl<'a> Visualizer<'a> {
                         self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
                     }
                 }
-
             }
         }
 
@@ -227,6 +254,17 @@ impl<'a> Visualizer<'a> {
                 }
                 Event::KeyDown { keycode: Some(Keycode::O), .. } => {
                     events.push(UserEvent::RunLocalOptimizations);
+                }
+                Event::KeyDown { keycode: Some(Keycode::Q), .. } => {
+                    events.push(UserEvent::RunRecSearch);
+                }
+                Event::KeyDown { keycode: Some(Keycode::P), .. } => {
+                    if state.is_some() && state.unwrap().selected.is_some() {
+                        events.push(UserEvent::RunRecSearchSelected);
+                    }
+                }
+                Event::KeyDown { keycode: Some(Keycode::R), .. } => {
+                    events.push(UserEvent::Reput);
                 }
                 Event::KeyDown { keycode: Some(Keycode::D), .. } => {
                     if state.is_some() && state.unwrap().selected.is_some() {

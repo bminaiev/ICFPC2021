@@ -38,12 +38,12 @@ fn main() {
     const TASK: usize = 85;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     // 101 - negative coordinates
-    let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78, 90, 95, 100, 101]).collect();
+    let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78, 90, 95, 100, 101, 114]).collect();
 
     let mut rnd = Random::new(254614);
     for GLOBAL_ITER in 0..1 {
         println!("GLOBAL ITER: {}", GLOBAL_ITER);
-        for problem_id in 101..=106 {
+        for problem_id in 115..=132 {
             if not_interesting_tests.contains(&problem_id) {
                 println!("Skip test: {}", problem_id);
                 continue;

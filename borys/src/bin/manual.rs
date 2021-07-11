@@ -1,12 +1,13 @@
 use std::time::Duration;
-use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer};
+use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer, load_best_solution, rec_optimizer, rec_optimizer2};
 use borys::helper::Helper;
 use borys::rand::Random;
 use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
+use rec_optimizer2::optimize;
 
-const TEST_ID: usize = 93;
+const TEST_ID: usize = 81;
 
 
 fn is_good_position(t: &Task, h: &Helper, v: usize, positions: &[Point], disabled: &[bool]) -> bool {
@@ -74,7 +75,7 @@ fn try_shift(t: &Task, h: &Helper, positions: &mut [Point], v: usize, shift: &Sh
     changed[v] = true;
     let old_p = positions[v];
     positions[v] = positions[v].shift(shift);
-    for max_depth in 0..=15 {
+    for max_depth in 0..=13 {
         if rec_shift(t, h, positions, &mut changed, 0, max_depth, disabled) {
             return true;
         }
@@ -91,7 +92,7 @@ pub fn main() {
     let helper = Helper::create(&task);
     println!("max_c = {}", helper.max_c);
     let mut rnd = Random::new(3342552);
-    let vertices = load_submission(&format!("../borys/outputs/{}.ans", TEST_ID));
+    let vertices = load_best_solution(TEST_ID);
     let mut solution = Solution::create(vertices, &task, &helper);
 
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
@@ -151,6 +152,25 @@ pub fn main() {
                     let old_score = solution.dislikes;
                     solution = local_optimizer::optimize_only_optimal(&task, &helper, solution, &mut rnd, &mut None);
                     println!("Local optimizations: {} -> {}", old_score, solution.dislikes);
+                    if !state.disabled.contains(&true) {
+                        save_solution(&solution, TEST_ID, &mut f_all, &task);
+                    }
+                }
+                UserEvent::RunRecSearch => {
+                    let old_score = solution.dislikes;
+                    solution = rec_optimizer::optimize(&task, &helper, solution);
+                    println!("Rec search: {} -> {}", old_score, solution.dislikes);
+                    if !state.disabled.contains(&true) {
+                        save_solution(&solution, TEST_ID, &mut f_all, &task);
+                    }
+                }
+                UserEvent::RunRecSearchSelected => {
+                    let old_score = solution.dislikes;
+                    solution = rec_optimizer::optimize_one(&task, &helper, solution, state.selected.unwrap(), 5, 4);
+                    println!("Rec search: {} -> {}", old_score, solution.dislikes);
+                    if !state.disabled.contains(&true) {
+                        save_solution(&solution, TEST_ID, &mut f_all, &task);
+                    }
                 }
                 UserEvent::MovePoint(to) => {
                     let selected = state.selected.unwrap();
@@ -165,6 +185,18 @@ pub fn main() {
                         }
                     } else {
                         state.disabled[selected] = true;
+                    }
+                }
+                UserEvent::Reput => {
+                    let mut vertices = vec![];
+                    for i in 0..state.disabled.len() {
+                        if state.disabled[i] {
+                            vertices.push(i);
+                        }
+                    }
+                    solution = optimize(&task, &helper, solution, &vertices, &mut rnd);
+                    if !state.disabled.contains(&true) {
+                        save_solution(&solution, TEST_ID, &mut f_all, &task);
                     }
                 }
             }

@@ -204,9 +204,50 @@ pub fn load_test(test_id: usize) -> Task {
 
     let input: Input = serde_json::from_reader(reader).unwrap();
 
-    dbg!(input.clone());
-
     conv_input(&input)
+}
+
+pub fn load_best_solution(test_id : usize) -> Vec<Point> {
+    let test = load_test(test_id);
+    let helper = Helper::create(&test);
+    let mut res =vec![];
+    let mut res_dislikes = std::i64::MAX;
+    {
+        let path = format!("../download_outputs/{}.ans", test_id);
+        if Path::new(&path).exists() {
+            let vertices = load_submission(&path);
+            let solution = Solution::create(vertices, &test, &helper);
+            if solution.dislikes < res_dislikes {
+                res_dislikes = solution.dislikes;
+                res = solution.vertices.clone();
+            }
+        }
+    }
+    {
+        let path = format!("../borys/outputs/{}.ans", test_id);
+        if Path::new(&path).exists() {
+            let vertices = load_submission(&path);
+            let solution = Solution::create(vertices, &test, &helper);
+            if solution.dislikes < res_dislikes {
+                res_dislikes = solution.dislikes;
+                res = solution.vertices.clone();
+            }
+        }
+    }
+    {
+        let path = format!("../outputs_romka/{}.ans", test_id);
+        if Path::new(&path).exists() {
+            let vertices = cp_format_loader::load(&path);
+            let solution = Solution::create(vertices, &test, &helper);
+            if solution.dislikes < res_dislikes {
+                res_dislikes = solution.dislikes;
+                res = solution.vertices.clone();
+            }
+        }
+    }
+    assert!(res.len() > 0);
+    return res;
+
 }
 
 pub fn load_submission(path: &str) -> Vec<Point> {
@@ -223,3 +264,6 @@ pub mod helper;
 pub mod local_optimizer;
 pub mod solver;
 pub mod vizualizer;
+pub mod cp_format_loader;
+pub mod rec_optimizer;
+pub mod rec_optimizer2;

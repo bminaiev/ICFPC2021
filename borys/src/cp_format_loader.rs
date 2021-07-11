@@ -1,12 +1,6 @@
-use std::io::{BufReader};
-
-use borys::*;
-use std::fs::File;
-use borys::helper::Helper;
-use borys::rand::Random;
-use std::path::Path;
-use borys::vizualizer::Visualizer;
-use std::time::Duration;
+use std::io;
+use std::io::Write;
+use crate::Point;
 
 /**************************************************
 
@@ -128,72 +122,12 @@ impl Scanner {
 
  *************************************************/
 
-
-const LOAD_MY: bool = true;
-
-pub fn main() {
-    let mut f_all = File::create("outputs/all_scores.txt").unwrap();
-
-    let outputs_suffix = "_romka"; // "_romka"
-
-    const TEST: usize = 81;
-    for test in TEST..=TEST {
-        println!("TEST: {}", test);
-        let mut vertices: Vec<_> = if LOAD_MY {
-            load_submission(&format!("../borys/outputs/{}.ans", test))
-        } else {
-            let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
-            if !Path::new(&romka_path).exists() {
-                continue;
-            }
-            let mut sc = Scanner::new_file(&romka_path);
-            let n = sc.usize();
-            (0..n).map(|_| {
-                let x = sc.i32();
-                let y = sc.i32();
-                Point { x, y }
-            }).collect()
-        };
-
-        let file = File::open(format!("../inputs/{}.problem", test)).unwrap();
-        let reader = BufReader::new(file);
-
-        let input: Input = serde_json::from_reader(reader).unwrap();
-
-        let task = conv_input(&input);
-        let helper = Helper::create(&task);
-
-        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
-        let mut viz = None;// Some(Visualizer::create(&helper, &ttf_context));
-
-
-        let mut rnd = Random::new(4541551144);
-
-        loop {
-            let initial_sol = Solution::create(vertices.clone(), &task, &helper);
-            let mut optimized = false;
-            for _ in 0..500 {
-                let mut solution = Solution::create(vertices.clone(), &task, &helper);
-
-                loop {
-                    let old_dislikes = solution.dislikes;
-                    let local_optimized_solution = local_optimizer::optimize(&task, &helper, solution, &mut rnd, &mut viz);
-                    let global_optimized = solver::not_local_optimize(&task, &helper, &mut rnd, local_optimized_solution);
-                    solution = global_optimized;
-                    save_solution(&solution, test, &mut f_all, &task);
-                    if solution.dislikes >= old_dislikes {
-                        break;
-                    }
-                }
-
-                save_solution(&solution, test, &mut f_all, &task);
-                if solution.dislikes < initial_sol.dislikes {
-                    optimized = true;
-                }
-            }
-            if !optimized {
-                break;
-            }
-        }
-    }
+pub(crate) fn load(path: &str) -> Vec<Point> {
+    let mut sc = Scanner::new_file(path);
+    let n = sc.usize();
+    (0..n).map(|_| {
+        let x = sc.i32();
+        let y = sc.i32();
+        Point { x, y }
+    }).collect()
 }

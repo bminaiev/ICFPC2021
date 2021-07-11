@@ -134,7 +134,7 @@ pub fn main() {
             }
         }
 
-        viz.render(&task, &helper, &solution);
+        viz.render(&task, &helper, &solution, 0, None);
         // The rest of the game loop goes here...
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 600));
