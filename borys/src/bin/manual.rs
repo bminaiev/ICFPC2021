@@ -6,11 +6,28 @@ use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
 
-const TEST_ID: usize = 75;
+const TEST_ID: usize = 74;
 
-fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool], depth: usize, max_depth: usize) -> bool {
+
+fn is_good_position(t: &Task, h: &Helper, v: usize, positions: &[Point], disabled: &[bool]) -> bool {
     for edge in t.edges.iter() {
+        if edge.fr != v && edge.to != v {
+            continue;
+        }
+        let another = edge.fr + edge.to - v;
+        if disabled[another] {
+            continue;
+        }
         if !h.is_valid_edge(t, edge.fr, edge.to, &positions[edge.fr], &positions[edge.to]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool], depth: usize, max_depth: usize, disabled: &[bool]) -> bool {
+    for edge in t.edges.iter() {
+        if !disabled[edge.fr] && !disabled[edge.to] && !h.is_valid_edge(t, edge.fr, edge.to, &positions[edge.fr], &positions[edge.to]) {
             if depth == max_depth {
                 return false;
             }
@@ -25,9 +42,12 @@ fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool]
                 unreachable!();
             };
             let seen = edge.fr + edge.to - to_change;
-            for dx in -1..=1 {
-                for dy in -1..=1 {
+            for dx in -1i32..=1 {
+                for dy in -1i32..=1 {
                     if dx == 0 && dy == 0 {
+                        continue;
+                    }
+                    if dx.abs() + dy.abs() != 1 {
                         continue;
                     }
                     let old_p = positions[to_change];
@@ -35,7 +55,7 @@ fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool]
                     if h.is_valid_edge(t, seen, to_change, &positions[seen], &np) {
                         changed[to_change] = true;
                         positions[to_change] = np;
-                        if rec_shift(t, h, positions, changed, depth + 1, max_depth) {
+                        if rec_shift(t, h, positions, changed, depth + 1, max_depth, disabled) {
                             return true;
                         }
                         changed[to_change] = false;
@@ -49,13 +69,13 @@ fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool]
     return true;
 }
 
-fn try_shift(t: &Task, h: &Helper, positions: &mut [Point], v: usize, shift: &Shift) -> bool {
+fn try_shift(t: &Task, h: &Helper, positions: &mut [Point], v: usize, shift: &Shift, disabled: &[bool]) -> bool {
     let mut changed = vec![false; positions.len()];
     changed[v] = true;
     let old_p = positions[v];
     positions[v] = positions[v].shift(shift);
-    for max_depth in 0..=8 {
-        if rec_shift(t, h, positions, &mut changed, 0, max_depth) {
+    for max_depth in 0..=15 {
+        if rec_shift(t, h, positions, &mut changed, 0, max_depth, disabled) {
             return true;
         }
     }
@@ -77,7 +97,7 @@ pub fn main() {
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let mut viz = Visualizer::create(&helper, &ttf_context);
 
-    let mut state = AdditionalState::create();
+    let mut state = AdditionalState::create(task.fig.len());
 
     let mut close_app = false;
     loop {
@@ -113,10 +133,12 @@ pub fn main() {
                                 }
                                 if ok {
                                     let mut vertices = solution.vertices.clone();
-                                    if try_shift(&task, &helper, &mut vertices, id, shift) {
+                                    if try_shift(&task, &helper, &mut vertices, id, shift, &state.disabled) {
                                         println!("Successfully moved point!");
                                         solution = Solution::create(vertices, &task, &helper);
-                                        save_solution(&solution, TEST_ID, &mut f_all, &task);
+                                        if !state.disabled.contains(&true) {
+                                            save_solution(&solution, TEST_ID, &mut f_all, &task);
+                                        }
                                     } else {
                                         println!("Couldn't find solution :(");
                                     }
@@ -134,6 +156,16 @@ pub fn main() {
                     let selected = state.selected.unwrap();
                     solution = solution.move_one_point(selected, *to, &task, &helper);
                     // TODO: check solution is valid?
+                }
+                UserEvent::Disable => {
+                    let selected = state.selected.unwrap();
+                    if state.disabled[selected] {
+                        state.disabled[selected] = false;
+                    } else {
+                        if is_good_position(&task, &helper, selected, &solution.vertices, &state.disabled) {
+                            state.disabled[selected] = true;
+                        }
+                    }
                 }
             }
         }

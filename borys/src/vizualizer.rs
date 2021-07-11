@@ -55,17 +55,19 @@ pub enum UserEvent {
     Shift(Shift),
     RunLocalOptimizations,
     MovePoint(Point),
+    Disable,
 }
 
 pub struct AdditionalState {
     pub mouse_x: i32,
     pub mouse_y: i32,
     pub selected: Option<usize>,
+    pub disabled: Vec<bool>,
 }
 
 impl AdditionalState {
-    pub fn create() -> Self {
-        Self { mouse_x: 0, mouse_y: 0, selected: None }
+    pub fn create(n: usize) -> Self {
+        Self { mouse_x: 0, mouse_y: 0, selected: None, disabled: vec![false; n] }
     }
 }
 
@@ -167,6 +169,14 @@ impl<'a> Visualizer<'a> {
             None => {}
             Some(state) => {
                 Self::print_text(&mut self.font, &mut self.canvas, &format!("mouse: {} {}", state.mouse_x, state.mouse_y), 0, Y_SHIFT * 5);
+                for (id, is_disabled) in state.disabled.iter().enumerate() {
+                    if *is_disabled {
+                        let p = Self::conv_point(self.zoom, &solution.vertices[id]);
+                        self.canvas.set_draw_color(Color::GREY);
+                        let s = 5i32;
+                        self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
+                    }
+                }
                 match closest_point(self.zoom, state.mouse_x, state.mouse_y, &solution.vertices) {
                     None => {}
                     Some(closest_point) => {
@@ -192,6 +202,7 @@ impl<'a> Visualizer<'a> {
                         self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
                     }
                 }
+
             }
         }
 
@@ -216,6 +227,11 @@ impl<'a> Visualizer<'a> {
                 }
                 Event::KeyDown { keycode: Some(Keycode::O), .. } => {
                     events.push(UserEvent::RunLocalOptimizations);
+                }
+                Event::KeyDown { keycode: Some(Keycode::D), .. } => {
+                    if state.is_some() && state.unwrap().selected.is_some() {
+                        events.push(UserEvent::Disable);
+                    }
                 }
                 Event::MouseMotion {
                     x,
