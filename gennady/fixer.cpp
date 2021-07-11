@@ -225,6 +225,11 @@ int main(int argc, char** argv) {
     is_hole[p.x][p.y] = true;
   }
 
+  vector<bool> can_move(nv);
+  for (int i = 0; i < nv; i++) {
+    can_move[i] = !is_hole[v[i].x][v[i].y];
+  }
+
   mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
 
   for (int very_outer = 0; very_outer < 100; very_outer++) {
@@ -261,7 +266,7 @@ int main(int argc, char** argv) {
       int i;
       do {
         i = rng() % nv;
-      } while (!can_move_from_holes && is_hole[v[i].x][v[i].y]);
+      } while (!can_move_from_holes && !can_move[i]);
       int dx = (int) (rng() % 3) - 1;
       int dy = (int) (rng() % 3) - 1;
       if (dx == 0 && dy == 0) continue;
@@ -292,7 +297,7 @@ int main(int argc, char** argv) {
                     fail = true;
                     break;
                   }
-                  if (!can_move_from_holes && is_hole[v[j].x][v[j].y]) {
+                  if (!can_move_from_holes && !can_move[j]) {
                     fail = true;
                     break;
                   }
