@@ -194,9 +194,9 @@ int main(int argc, char** argv) {
   auto best_v = v;
 
   mt19937 rng((unsigned int) chrono::steady_clock::now().time_since_epoch().count());
-  double init_temp = 300000;
+  double init_temp = 3000;
   double final_temp = 0.05;
-  const int ITERS = 70000;
+  const int ITERS = 30000;
   for (int outer = 0; outer < ITERS; outer++) {
     double temp = init_temp * pow(final_temp / init_temp, outer * 1.0 / ITERS);
     for (int rep = 0; rep < nv; rep++) {

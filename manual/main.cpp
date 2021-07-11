@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
     test_id = 1;
     readInput();
     v.setSize(2000, 1400);
-    const int TC = 106;
+    const int TC = 132;
     v.setOnKeyPress([](const QKeyEvent& ev) {
         if (ev.key() == Qt::Key_Escape) { exited = true; }
         if (ev.key() == Qt::Key_S) { saveSolution(); }
