@@ -217,27 +217,26 @@ int main(int argc, char** argv) {
   }  
 
   vector<Point> v(nv, Point(-1, -1));
-  int best_score = (int) 1e9;
   auto best_v = v;
   bool found = false;
 
-  vector<int> test(np, -1);
-  ifstream tin("../hints/" + to_string(xid) + ".txt");
-  if (!tin.is_open()) {
-    cerr << "hint for " << xid << "doesn't exist (check relative path?)" << '\n';
-    return 0;
+  ifstream in_ans("../outputs_romka/" + to_string(xid) + ".ans");
+  int nv_test;
+  in_ans >> nv_test;
+  assert(nv == nv_test);
+  for (int i = 0; i < nv; i++) {
+    in_ans >> v[i].x >> v[i].y;
   }
-  for (int i = 0; i < np; i++) tin >> test[i];
-  debug(test);
+  in_ans.close();
+  int best_score = E.eval(v);
+
+  const vector<int> test = {47, 42, 51, 54};
+  for (int vd : test) v[vd] = Point(-1, -1);
 
   vector<bool> taken(nv, false);
   int tkc = 0;
-  for (int i = 0; i < np; i++)
-    if (test[i] != -1) {
-      taken[test[i]] = true;
-      tkc++;
-      v[test[i]] = poly[i];
-    }
+  for (int i = 0; i < nv; i++)
+    if (v[i].x != -1) { taken[i] = true; tkc++; }
 
   vector<vector<Point>> oknp(nv);
   for (int i = 0; i < nv; i++) {
@@ -270,6 +269,7 @@ int main(int argc, char** argv) {
       }      
       if (ok) oknp[i].push_back(tp);
     }
+    cerr << i << " - " << oknp[i].size() << endl;
   }
 
   vector<int> order(nv);
@@ -340,14 +340,13 @@ int main(int argc, char** argv) {
           best_score = score;
           best_v = v;
           debug(best_v);
-          debug(score, best_score);
+          debug(score);
           ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
           out << best_v.size() << '\n';
           for (auto& p : best_v) {
             out << p.x << " " << p.y << '\n';
           }
           out.close();
-          exit(0);
         }
       }
       return;
@@ -396,77 +395,7 @@ int main(int argc, char** argv) {
     }
   };
 
-  function<void(int)> DfsZero = [&](int ii) {
-    if (found) return;
-    // cerr << ii << " of " << np << endl;
-    // if (ii >= 35) {
-    //   ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
-    //   out << v.size() << '\n';
-    //   for (auto& p : v) {
-    //     out << p.x << " " << p.y << '\n';
-    //   }
-    //   out.close();
-    // }
-    if (ii == np) {
-      debug(v);
-      ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
-      out << v.size() << '\n';
-      for (auto& p : v) {
-        out << p.x << " " << p.y << '\n';
-      }
-      out.close();
-      Dfs(0);
-      return;
-    }
-    if (test[ii] != -1) {
-      DfsZero(ii + 1);
-      return;
-    }
-    for (int i = 0; i < nv; i++) {
-      if (v[i].x == -1) {
-        if (test[ii] != -1 && i != test[ii]) {
-          continue;
-        }
-        if (test[ii] == -1 && taken[i]) {
-          continue;
-        }
-        v[i] = poly[ii];
-        bool ok = true;
-        for (int j = 0; j < nv; j++) {
-          if (i == j || v[j].x == -1) {
-            continue;
-          }
-          {
-            double dist = sqrt((v[i] - v[j]).abs2());
-            if (dist > max_dist[i][j]) {
-              ok = false;
-              break;
-            }
-          }
-          if (has_edge[i][j]) {
-            if (!E.c.IsSegmentInside(v[i], v[j])) {
-              ok = false;
-              break;
-            }
-            int new_len = (v[i] - v[j]).abs2();
-            int old_len = (vertices[i] - vertices[j]).abs2();
-            long long num = abs(new_len - old_len);
-            long long den = old_len;
-            if (num * EPS_COEF > eps * den) {
-              ok = false;
-              break;
-            }
-          }
-        }
-        if (ok) {
-          DfsZero(ii + 1);
-        }
-        v[i] = Point(-1, -1);
-      }
-    }
-  };
-  
-  DfsZero(0);
+  Dfs(0);
   cout << "done" << '\n';
 
 /*  ofstream out("../outputs/" + to_string(xid) + ".ans");

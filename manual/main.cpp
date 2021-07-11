@@ -456,13 +456,18 @@ void doFix() {
             for (int v : g[i]) {
                 int cd = (pp - points[v]).abs2();
                 int od = (srcPoints[i] - srcPoints[v]).abs2();
-                if (1000000LL * (cd - od) > (ll)E * od) {
+                if (1000000LL * abs(cd - od) > (ll)E * od) {
                     pen += abs(sqrt(cd) - sqrt(od));
                 }
             }
-            pen *= 1e6;
+            pen *= 1e5;
             for (const PointD& h : hole) {
-                pen -= (h - pp).abs2();
+                long double bd = 1e9;
+                forn(j, N) {
+                    if (i == j) bd = min(bd, (pp - points[j]).abs2());
+                    else bd = min(bd, (points[i] - points[j]).abs2());
+                }
+                pen += bd;
             }
             return pen;
         };
@@ -553,6 +558,7 @@ int main(int argc, char* argv[])
         if (ev.key() == Qt::Key_7) { doShake(); }
         if (ev.key() == Qt::Key_8) { doIterWithMt(); }
         if (ev.key() == Qt::Key_Z) { check(); }
+        if (ev.key() == Qt::Key_X) { showIds = (showIds + 1) % 4; }
         if (ev.key() == Qt::Key_B) { doBind(); }
         if (ev.key() == Qt::Key_M) { doBindAll(); }
         if (ev.key() == Qt::Key_U) { doUnbind(); }

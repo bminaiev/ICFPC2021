@@ -396,18 +396,11 @@ int main(int argc, char** argv) {
     }
   };
 
-  function<void(int)> DfsZero = [&](int ii) {
-    if (found) return;
-    // cerr << ii << " of " << np << endl;
-    // if (ii >= 35) {
-    //   ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
-    //   out << v.size() << '\n';
-    //   for (auto& p : v) {
-    //     out << p.x << " " << p.y << '\n';
-    //   }
-    //   out.close();
-    // }
-    if (ii == np) {
+  function<void(int, int)> DfsZero = [&](int ii, int left) {
+    int i = order[ii];
+    if (nv - ii < left) return;
+    // cerr << ii << "/" << nv << ", " << left << endl;
+    if (ii == nv) {
       debug(v);
       ofstream out("../outputs_romka/" + to_string(xid) + ".ans");
       out << v.size() << '\n';
@@ -418,19 +411,14 @@ int main(int argc, char** argv) {
       Dfs(0);
       return;
     }
-    if (test[ii] != -1) {
-      DfsZero(ii + 1);
+    if (taken[i]) {
+      DfsZero(ii + 1, left);
       return;
     }
-    for (int i = 0; i < nv; i++) {
-      if (v[i].x == -1) {
-        if (test[ii] != -1 && i != test[ii]) {
-          continue;
-        }
-        if (test[ii] == -1 && taken[i]) {
-          continue;
-        }
-        v[i] = poly[ii];
+    for (int qp = 0; qp < np; qp++) {
+      if (test[qp] == -1) {
+        test[qp] = i;
+        v[i] = poly[qp];
         bool ok = true;
         for (int j = 0; j < nv; j++) {
           if (i == j || v[j].x == -1) {
@@ -459,14 +447,16 @@ int main(int argc, char** argv) {
           }
         }
         if (ok) {
-          DfsZero(ii + 1);
+          DfsZero(ii + 1, left - 1);
         }
         v[i] = Point(-1, -1);
+        test[qp] = -1;
       }
     }
+    DfsZero(ii + 1, left);
   };
   
-  DfsZero(0);
+  DfsZero(0, np - tkc);
   cout << "done" << '\n';
 
 /*  ofstream out("../outputs/" + to_string(xid) + ".ans");
