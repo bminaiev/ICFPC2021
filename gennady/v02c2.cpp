@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
         // (new_len - old_len) * EPS_COEF <= eps * old_len
         // new_len <= eps * old_len / EPS_COEF + old_len
         double new_len = (double) old_len + (double) (eps * old_len) / (double) EPS_COEF;
-        max_dist[i][j] = new_len;
+        max_dist[i][j] = sqrt(new_len);
       }
     }
   }
