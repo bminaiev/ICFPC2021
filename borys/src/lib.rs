@@ -40,10 +40,14 @@ pub struct Solution {
     pub vertices: Vec<Point>,
     pub edge_scores: Vec<f64>,
     pub crossed_edges: usize,
+    pub bad_edges: usize,
 }
 
 impl Solution {
     pub fn cmp(&self, other: &Self) -> Ordering {
+        if self.bad_edges != other.bad_edges {
+            return self.bad_edges.cmp(&other.bad_edges);
+        }
         if self.dislikes != other.dislikes {
             return self.dislikes.cmp(&other.dislikes);
         }
@@ -58,6 +62,9 @@ impl Solution {
     }
 
     pub fn cmp_with_edges(&self, other: &Self) -> Ordering {
+        if self.bad_edges != other.bad_edges {
+            return self.bad_edges.cmp(&other.bad_edges);
+        }
         if self.crossed_edges != other.crossed_edges {
             return self.crossed_edges.cmp(&other.crossed_edges);
         }
@@ -90,7 +97,13 @@ impl Solution {
                 }
             }
         }
-        Self { vertices, dislikes, edge_scores, crossed_edges }
+        let mut bad_edges = 0;
+        for edge in t.edges.iter() {
+            if !h.is_valid_edge(t, edge.fr, edge.to, &vertices[edge.fr], &vertices[edge.to]) {
+                bad_edges += 1;
+            }
+        }
+        Self { vertices, dislikes, edge_scores, crossed_edges, bad_edges }
     }
 
     pub fn move_one_point(self, v: usize, p: Point, t: &Task, h: &Helper) -> Self {

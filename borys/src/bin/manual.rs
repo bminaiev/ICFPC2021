@@ -6,7 +6,7 @@ use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
 
-const TEST_ID: usize = 74;
+const TEST_ID: usize = 93;
 
 
 fn is_good_position(t: &Task, h: &Helper, v: usize, positions: &[Point], disabled: &[bool]) -> bool {
@@ -160,11 +160,11 @@ pub fn main() {
                 UserEvent::Disable => {
                     let selected = state.selected.unwrap();
                     if state.disabled[selected] {
-                        state.disabled[selected] = false;
-                    } else {
                         if is_good_position(&task, &helper, selected, &solution.vertices, &state.disabled) {
-                            state.disabled[selected] = true;
+                            state.disabled[selected] = false;
                         }
+                    } else {
+                        state.disabled[selected] = true;
                     }
                 }
             }
