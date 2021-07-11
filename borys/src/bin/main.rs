@@ -15,7 +15,7 @@ fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
     let helper = Helper::create(t);
 
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
-    let mut viz = Some(Visualizer::create(&helper, &ttf_context));
+    let mut viz = None;//Some(Visualizer::create(&helper, &ttf_context));
     match solver::solve_with_helper(t, &helper, rnd) {
         None => None,
         Some(mut solution) => {
@@ -37,18 +37,19 @@ fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
 fn main() {
     const TASK: usize = 85;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
-    let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78]).collect();
+    // 101 - negative coordinates
+    let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78, 90, 95, 100, 101]).collect();
 
     let mut rnd = Random::new(254614);
     for GLOBAL_ITER in 0..1 {
         println!("GLOBAL ITER: {}", GLOBAL_ITER);
-        for problem_id in TASK..=TASK {
-            // if not_interesting_tests.contains(&problem_id) {
-            //     println!("Skip test: {}", problem_id);
-            //     continue;
-            // }
+        for problem_id in 101..=106 {
+            if not_interesting_tests.contains(&problem_id) {
+                println!("Skip test: {}", problem_id);
+                continue;
+            }
             println!("Start test {}", problem_id);
-            for _ in 0..100 {
+            for _ in 0..1 {
                 let task = load_test(problem_id);
                 let res = solve(&task, &mut rnd);
                 match res {

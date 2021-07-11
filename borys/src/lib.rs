@@ -7,7 +7,7 @@ use crate::helper::Helper;
 
 pub type PointInput = [i32; 2];
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Figure {
     pub edges: Vec<Vec<usize>>,
     pub vertices: Vec<PointInput>,
@@ -21,7 +21,7 @@ pub struct Bonus {
     pub position: PointInput,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Input {
     pub hole: Vec<PointInput>,
     pub figure: Figure,
@@ -190,6 +190,8 @@ pub fn load_test(test_id: usize) -> Task {
     let reader = BufReader::new(file);
 
     let input: Input = serde_json::from_reader(reader).unwrap();
+
+    dbg!(input.clone());
 
     conv_input(&input)
 }

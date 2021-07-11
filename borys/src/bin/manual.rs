@@ -6,7 +6,7 @@ use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
 use sdl2::render::{Canvas};
 use std::fs::File;
 
-const TEST_ID: usize = 75;
+const TEST_ID: usize = 74;
 
 fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool], depth: usize, max_depth: usize) -> bool {
     for edge in t.edges.iter() {
@@ -25,9 +25,12 @@ fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool]
                 unreachable!();
             };
             let seen = edge.fr + edge.to - to_change;
-            for dx in -1..=1 {
-                for dy in -1..=1 {
+            for dx in -1i32..=1 {
+                for dy in -1i32..=1 {
                     if dx == 0 && dy == 0 {
+                        continue;
+                    }
+                    if dx.abs() + dy.abs() != 1 {
                         continue;
                     }
                     let old_p = positions[to_change];
@@ -54,7 +57,7 @@ fn try_shift(t: &Task, h: &Helper, positions: &mut [Point], v: usize, shift: &Sh
     changed[v] = true;
     let old_p = positions[v];
     positions[v] = positions[v].shift(shift);
-    for max_depth in 0..=8 {
+    for max_depth in 0..=15 {
         if rec_shift(t, h, positions, &mut changed, 0, max_depth) {
             return true;
         }
