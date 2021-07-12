@@ -1,5 +1,5 @@
 use std::time::Duration;
-use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer, load_best_solution, rec_optimizer, rec_optimizer2};
+use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer, load_best_solution, rec_optimizer, rec_optimizer2, UsedBonus, force_save_solution, eps_optimizer};
 use borys::helper::Helper;
 use borys::rand::Random;
 use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
@@ -7,7 +7,7 @@ use sdl2::render::{Canvas};
 use std::fs::File;
 use rec_optimizer2::optimize;
 
-const TEST_ID: usize = 81;
+const TEST_ID: usize = 60;
 
 
 fn is_good_position(t: &Task, h: &Helper, v: usize, positions: &[Point], disabled: &[bool]) -> bool {
@@ -40,7 +40,8 @@ fn rec_shift(t: &Task, h: &Helper, positions: &mut [Point], changed: &mut [bool]
             } else if changed[edge.to] {
                 edge.fr
             } else {
-                unreachable!();
+                continue;
+                // unreachable!();
             };
             let seen = edge.fr + edge.to - to_change;
             for dx in -1i32..=1 {
@@ -156,6 +157,14 @@ pub fn main() {
                         save_solution(&solution, TEST_ID, &mut f_all, &task);
                     }
                 }
+                UserEvent::RunEpsOptimizations => {
+                    let old_score = solution.dislikes;
+                    solution = eps_optimizer::optimize(&task, &helper, solution, &mut rnd);
+                    println!("Eps optimizations: {} -> {}", old_score, solution.dislikes);
+                    if !state.disabled.contains(&true) {
+                        save_solution(&solution, TEST_ID, &mut f_all, &task);
+                    }
+                }
                 UserEvent::RunRecSearch => {
                     let old_score = solution.dislikes;
                     solution = rec_optimizer::optimize(&task, &helper, solution);
@@ -172,6 +181,7 @@ pub fn main() {
                         save_solution(&solution, TEST_ID, &mut f_all, &task);
                     }
                 }
+
                 UserEvent::MovePoint(to) => {
                     let selected = state.selected.unwrap();
                     solution = solution.move_one_point(selected, *to, &task, &helper);
@@ -198,6 +208,14 @@ pub fn main() {
                     if !state.disabled.contains(&true) {
                         save_solution(&solution, TEST_ID, &mut f_all, &task);
                     }
+                }
+                UserEvent::ForceSaveWithBonus => {
+                    println!("Force saving solution..");
+                    if solution.used_bonuses.is_empty() {
+                        // TODO: DON'T FORGET TO CHANGE PROBLEM HERE!!!
+                        solution.used_bonuses.push(UsedBonus { bonus: String::from("GLOBALIST"), problem: 92 });
+                    }
+                    force_save_solution(&solution, TEST_ID, &mut f_all, &task);
                 }
             }
         }

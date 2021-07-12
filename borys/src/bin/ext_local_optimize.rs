@@ -136,24 +136,10 @@ pub fn main() {
 
     let outputs_suffix = "_romka"; // "_romka"
 
-    const TEST: usize = 81;
+    const TEST: usize = 3;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
-        let mut vertices: Vec<_> = if LOAD_MY {
-            load_submission(&format!("../borys/outputs/{}.ans", test))
-        } else {
-            let romka_path = format!("../outputs{}/{}.ans", outputs_suffix, test);
-            if !Path::new(&romka_path).exists() {
-                continue;
-            }
-            let mut sc = Scanner::new_file(&romka_path);
-            let n = sc.usize();
-            (0..n).map(|_| {
-                let x = sc.i32();
-                let y = sc.i32();
-                Point { x, y }
-            }).collect()
-        };
+        let mut vertices: Vec<_> = load_best_solution(test);
 
         let file = File::open(format!("../inputs/{}.problem", test)).unwrap();
         let reader = BufReader::new(file);
@@ -167,7 +153,7 @@ pub fn main() {
         let mut viz = None;// Some(Visualizer::create(&helper, &ttf_context));
 
 
-        let mut rnd = Random::new(4541551144);
+        let mut rnd = Random::new(4254115);
 
         loop {
             let initial_sol = Solution::create(vertices.clone(), &task, &helper);

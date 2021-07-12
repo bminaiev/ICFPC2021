@@ -130,6 +130,6 @@ pub fn main() {
         let y = sc.i32();
         [x, y]
     }).collect();
-    let output = OutputFormat { vertices };
+    let output = OutputFormat { vertices, bonuses : vec![] };
     println!("{}", serde_json::to_string(&output).unwrap());
 }

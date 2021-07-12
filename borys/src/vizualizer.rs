@@ -59,6 +59,8 @@ pub enum UserEvent {
     MovePoint(Point),
     Disable,
     Reput,
+    ForceSaveWithBonus,
+    RunEpsOptimizations,
 }
 
 pub struct AdditionalState {
@@ -129,6 +131,17 @@ impl<'a> Visualizer<'a> {
             let screen_p = Self::conv_point(self.zoom, &hole_p);
             Self::print_text(&mut self.font, &mut self.canvas, &format!("{}", min_d2), screen_p.x, screen_p.y);
         }
+
+        for bonus in task.bonuses.iter() {
+            if bonus.bonus == "GLOBALIST" {
+                let p = Self::conv_point(self.zoom, &Point { x: bonus.position[0], y: bonus.position[1] });
+                self.canvas.set_draw_color(Color::MAGENTA);
+                let s = 5i32;
+                self.canvas.fill_rect(sdl2::rect::Rect::new(p.x - s, p.y - s, (s * 2) as u32, (s * 2) as u32)).unwrap();
+                Self::print_text(&mut self.font, &mut self.canvas, &format!("{}", bonus.problem), p.x, p.y);
+            }
+        }
+
         let mut bad_edges = 0;
         for edge in task.edges.iter() {
             let p1 = Self::conv_point(self.zoom, &solution.vertices[edge.fr]);
@@ -252,8 +265,14 @@ impl<'a> Visualizer<'a> {
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
                     events.push(UserEvent::Shift(Shift { dx: 0, dy: -1 }));
                 }
+                Event::KeyDown { keycode: Some(Keycode::Num9), .. } => {
+                    events.push(UserEvent::Shift(Shift { dx: 1, dy: 1 }));
+                }
                 Event::KeyDown { keycode: Some(Keycode::O), .. } => {
                     events.push(UserEvent::RunLocalOptimizations);
+                }
+                Event::KeyDown { keycode: Some(Keycode::E), .. } => {
+                    events.push(UserEvent::RunEpsOptimizations);
                 }
                 Event::KeyDown { keycode: Some(Keycode::Q), .. } => {
                     events.push(UserEvent::RunRecSearch);
@@ -262,6 +281,9 @@ impl<'a> Visualizer<'a> {
                     if state.is_some() && state.unwrap().selected.is_some() {
                         events.push(UserEvent::RunRecSearchSelected);
                     }
+                }
+                Event::KeyDown { keycode: Some(Keycode::B), .. } => {
+                    events.push(UserEvent::ForceSaveWithBonus);
                 }
                 Event::KeyDown { keycode: Some(Keycode::R), .. } => {
                     events.push(UserEvent::Reput);

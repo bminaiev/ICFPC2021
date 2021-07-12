@@ -29,9 +29,22 @@ pub struct Input {
     pub bonuses: Vec<Bonus>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UsedBonus {
+    pub bonus: String,
+    pub problem: usize,
+}
+
+
+fn empty_vec() -> Vec<UsedBonus> {
+    vec![]
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OutputFormat {
-    pub vertices: Vec<PointInput>
+    pub vertices: Vec<PointInput>,
+    #[serde(default = "empty_vec")]
+    pub bonuses: Vec<UsedBonus>,
 }
 
 #[derive(Clone)]
@@ -41,15 +54,24 @@ pub struct Solution {
     pub edge_scores: Vec<f64>,
     pub crossed_edges: usize,
     pub bad_edges: usize,
+    pub got_bonuses: usize,
+    pub used_bonuses: Vec<UsedBonus>,
+    pub sum_diffs: f64,
 }
 
 impl Solution {
     pub fn cmp(&self, other: &Self) -> Ordering {
+        if self.got_bonuses != other.got_bonuses {
+            return self.got_bonuses.cmp(&other.got_bonuses).reverse();
+        }
         if self.bad_edges != other.bad_edges {
             return self.bad_edges.cmp(&other.bad_edges);
         }
         if self.dislikes != other.dislikes {
             return self.dislikes.cmp(&other.dislikes);
+        }
+        if self.sum_diffs.partial_cmp(&other.sum_diffs).unwrap() != Ordering::Equal {
+            return self.sum_diffs.partial_cmp(&other.sum_diffs).unwrap();
         }
         for (my, other) in self.edge_scores.iter().zip(other.edge_scores.iter()) {
             match my.partial_cmp(&other).unwrap() {
@@ -61,7 +83,23 @@ impl Solution {
         return Ordering::Equal;
     }
 
+    pub fn cmp_with_eps(&self, other: &Self) -> Ordering {
+        if self.got_bonuses != other.got_bonuses {
+            return self.got_bonuses.cmp(&other.got_bonuses).reverse();
+        }
+        if self.dislikes != other.dislikes {
+            return self.dislikes.cmp(&other.dislikes);
+        }
+        if self.sum_diffs.partial_cmp(&other.sum_diffs).unwrap() != Ordering::Equal {
+            return self.sum_diffs.partial_cmp(&other.sum_diffs).unwrap();
+        }
+        return Ordering::Equal;
+    }
+
     pub fn cmp_with_edges(&self, other: &Self) -> Ordering {
+        if self.got_bonuses != other.got_bonuses {
+            return self.got_bonuses.cmp(&other.got_bonuses).reverse();
+        }
         if self.bad_edges != other.bad_edges {
             return self.bad_edges.cmp(&other.bad_edges);
         }
@@ -71,6 +109,16 @@ impl Solution {
         return self.cmp(&other);
     }
 }
+
+struct WantBonus {
+    problem_id: usize,
+    bonus: &'static str,
+}
+
+const WANT_BONUSES: [WantBonus; 3] = [
+    WantBonus { problem_id: 81, bonus: "GLOBALIST" },
+    WantBonus { problem_id: 7, bonus: "GLOBALIST" },
+    WantBonus { problem_id: 60, bonus: "GLOBALIST" }];
 
 impl Solution {
     pub fn create(vertices: Vec<Point>, t: &Task, h: &Helper) -> Self {
@@ -103,7 +151,32 @@ impl Solution {
                 bad_edges += 1;
             }
         }
-        Self { vertices, dislikes, edge_scores, crossed_edges, bad_edges }
+        let mut got_bonuses = 0;
+        for bonus in t.bonuses.iter() {
+            let mut want_it = false;
+            for want in WANT_BONUSES.iter() {
+                if want.bonus == bonus.bonus && want.problem_id == bonus.problem {
+                    want_it = true;
+                }
+            }
+            let mut has_point = false;
+            for p in vertices.iter() {
+                if p.x == bonus.position[0] && p.y == bonus.position[1] {
+                    has_point = true;
+                }
+            }
+            if want_it && has_point {
+                got_bonuses += 1;
+            }
+        }
+        let mut sum_diffs = 0.0;
+        for edge in t.edges.iter() {
+            let my_d2 = vertices[edge.fr].d2(&vertices[edge.to]) as f64;
+            let expected_d2 = t.fig[edge.fr].d2(&t.fig[edge.to]) as f64;
+            let diff = (my_d2 / expected_d2 - 1.0).abs();
+            sum_diffs += diff;
+        }
+        Self { vertices, dislikes, edge_scores, crossed_edges, bad_edges, got_bonuses, used_bonuses: vec![], sum_diffs }
     }
 
     pub fn move_one_point(self, v: usize, p: Point, t: &Task, h: &Helper) -> Self {
@@ -167,28 +240,31 @@ pub fn conv_input(t: &Input) -> Task {
     let hole = conv_points(&t.hole);
     let fig = conv_points(&t.figure.vertices);
     let edges: Vec<_> = t.figure.edges.iter().map(|e| Edge { fr: e[0], to: e[1] }).collect();
-    return Task { hole, fig, edges, epsilon: t.epsilon, bonuses: t.bonuses.clone() };
+    let mut bonuses = vec![];
+    for bonus in t.bonuses.iter() {
+        for want in WANT_BONUSES.iter() {
+            if want.bonus == bonus.bonus && want.problem_id == bonus.problem {
+                bonuses.push(bonus.clone())
+            }
+        }
+    }
+    return Task { hole, fig, edges, epsilon: t.epsilon, bonuses };
 }
 
-fn get_old_score(test: usize) -> i64 {
-    let path = format!("outputs/{}.score", test);
-    if !Path::new(&path).exists() {
-        return std::i64::MAX;
+fn get_old_solution(test_id: usize, t: &Task) -> Option<Solution> {
+    let path = format!("../borys/outputs/{}.ans", test_id);
+    if Path::new(&path).exists() {
+        let sol = load_submission(&path);
+        let h = Helper::create(t);
+        return Some(Solution::create(sol, t, &h));
+    } else {
+        return None;
     }
-    let f = File::open(path).unwrap();
-    let mut s = String::new();
-    BufReader::new(f).read_to_string(&mut s).unwrap();
-    s.trim().parse().unwrap()
 }
 
-pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
-    let old_score = get_old_score(test);
-    if old_score <= solution.dislikes {
-        println!("skip writing answer for test {}, as cur score {} is not better than prev {}", test, solution.dislikes, old_score);
-        return;
-    }
+pub fn force_save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
     let vertices = solution.vertices.iter().map(|p| [p.x, p.y]).collect();
-    let out = OutputFormat { vertices };
+    let out = OutputFormat { vertices, bonuses: solution.used_bonuses.clone() };
     let mut f = File::create(format!("outputs/{}.ans", test)).unwrap();
     writeln!(f, "{}", serde_json::to_string(&out).unwrap()).unwrap();
     let mut f_score = File::create(format!("outputs/{}.score", test)).unwrap();
@@ -196,6 +272,19 @@ pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &
     writeln!(f_all, "{}: {}", test, solution.dislikes).unwrap();
     f_all.flush().unwrap();
     drawer::save_test(&task, &solution, &format!("outputs_pics/{}.png", test));
+}
+
+pub fn save_solution(solution: &Solution, test: usize, f_all: &mut File, task: &Task) {
+    match get_old_solution(test, task) {
+        None => {}
+        Some(old_sol) => {
+            if old_sol.cmp(&solution) != Ordering::Greater {
+                println!("skip writing answer for test {}, as cur score {} is not better than prev {}", test, solution.dislikes, old_sol.dislikes);
+                return;
+            }
+        }
+    }
+    force_save_solution(solution, test, f_all, task);
 }
 
 pub fn load_test(test_id: usize) -> Task {
@@ -207,19 +296,26 @@ pub fn load_test(test_id: usize) -> Task {
     conv_input(&input)
 }
 
-pub fn load_best_solution(test_id : usize) -> Vec<Point> {
+const USE_ONLY_MY: bool = false;
+
+pub fn load_best_solution(test_id: usize) -> Vec<Point> {
     let test = load_test(test_id);
     let helper = Helper::create(&test);
-    let mut res =vec![];
-    let mut res_dislikes = std::i64::MAX;
+    let mut res: Option<Solution> = None;
+    if !USE_ONLY_MY
     {
         let path = format!("../download_outputs/{}.ans", test_id);
         if Path::new(&path).exists() {
             let vertices = load_submission(&path);
             let solution = Solution::create(vertices, &test, &helper);
-            if solution.dislikes < res_dislikes {
-                res_dislikes = solution.dislikes;
-                res = solution.vertices.clone();
+            let need_change = match res {
+                None => { true }
+                Some(ref res) => {
+                    res.cmp(&solution) == Ordering::Greater
+                }
+            };
+            if need_change {
+                res = Some(solution);
             }
         }
     }
@@ -228,26 +324,36 @@ pub fn load_best_solution(test_id : usize) -> Vec<Point> {
         if Path::new(&path).exists() {
             let vertices = load_submission(&path);
             let solution = Solution::create(vertices, &test, &helper);
-            if solution.dislikes < res_dislikes {
-                res_dislikes = solution.dislikes;
-                res = solution.vertices.clone();
+            let need_change = match res {
+                None => { true }
+                Some(ref res) => {
+                    res.cmp(&solution) == Ordering::Greater
+                }
+            };
+            if need_change {
+                res = Some(solution);
             }
         }
     }
+    if !USE_ONLY_MY
     {
         let path = format!("../outputs_romka/{}.ans", test_id);
         if Path::new(&path).exists() {
             let vertices = cp_format_loader::load(&path);
             let solution = Solution::create(vertices, &test, &helper);
-            if solution.dislikes < res_dislikes {
-                res_dislikes = solution.dislikes;
-                res = solution.vertices.clone();
+            let need_change = match res {
+                None => { true }
+                Some(ref res) => {
+                    res.cmp(&solution) == Ordering::Greater
+                }
+            };
+            if need_change {
+                res = Some(solution);
             }
         }
     }
-    assert!(res.len() > 0);
-    return res;
-
+    assert!(res.is_some());
+    return res.unwrap().vertices;
 }
 
 pub fn load_submission(path: &str) -> Vec<Point> {
@@ -267,3 +373,4 @@ pub mod vizualizer;
 pub mod cp_format_loader;
 pub mod rec_optimizer;
 pub mod rec_optimizer2;
+pub mod eps_optimizer;

@@ -78,7 +78,11 @@ pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd:
                     let shift_y = shift.dy - p.y + base_point.y;
                     let old_cur_positions = cur_positions.clone();
 
-                    let np = Point { x: p.x + shift_x, y: p.y + shift_y };
+                    let mut np = Point { x: p.x + shift_x, y: p.y + shift_y };
+                    if !t.bonuses.is_empty() && rnd.next_in_range(0, 10) == 0 {
+                        let bonus = &t.bonuses[rnd.next_in_range(0, t.bonuses.len())];
+                        np = Point { x: bonus.position[0], y: bonus.position[1] }
+                    }
                     cur_positions[id] = Some(np);
                     let mut need_rev_back = true;
                     let mut changed_points = BTreeSet::new();
@@ -107,7 +111,8 @@ pub fn optimize_internal(t: &Task, helper: &Helper, mut solution: Solution, rnd:
                                     }
                                     found = true;
                                     need_rev_back = false;
-                                    println!("new score: {}, big move: {}, pr change: {}, overall best: {}", solution.dislikes, big_moves, pr_change, b_sol.dislikes);
+                                    println!("new score: {},{}, big move: {}, pr change: {}, overall best: {},{}", solution.dislikes, solution.got_bonuses,
+                                             big_moves, pr_change, b_sol.dislikes, b_sol.got_bonuses);
                                     iter += 1;
                                     if DRAW_PICTURES {
                                         drawer::save_test(t, &solution, &format!("process/{:04}.png", iter));
