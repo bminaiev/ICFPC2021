@@ -1,0 +1,36 @@
+This archive contains the source code of RGBTeam for ICFPC 2021: 
+
+-- Roman Udovichenko
+-- Gennady Korotkevich
+-- Borys Minaiev
+
+This is a huge mess as we obviously didn't have time to clean it up :)
+We have a huge number of source code files, and we used them interchangeably, optimizing solutions step by step.
+Here's an overview of file groups: 
+
+-- gennady/v**.cpp: solutions based on brute force search.
+   Vertices are put into the grid one by one recursively, pruning if the situation becomes unsolvable.
+   Worked well and found provably optimal answers for about 35 tests out of the first group of 59 tests.
+   Didn't really work for any of the tests added later into the contest, mostly due to bigger inputs. 
+
+-- gennady/u**.cpp: solutions for tests that are solvable for a score of 0.
+   Trying to find long sequences of graph edges that correspond to long sequences of consecutive polygonal edges. 
+   Trying to fill in the remaining boundary vertices with graph vertices.
+   Brute forcing the remaining vertices.
+
+-- gennady/x**.cpp: solutions based on simulated annealing.
+   Given a valid solution, trying to optimize it while keeping it valid by applying local changes: 
+     . shifting a subset of close vertices by the same vector; 
+     . if a vertex has degree 2, flipping it with respect to the line connecting its neighbors.
+
+-- gennady/fixer.cpp: given a solution that is almost valid but a few edges are too short or too long,
+   tries to fix them using simulated annealing.
+
+-- gennady/qpart.cpp: tries to pick a subset of close vertices and move each vertex by some vector independently,
+   optimizing the goal function while keeping the solution valid.
+
+-- manual/main.cpp: visualizes test cases and answers with a rich user interface.
+   Allows saving answers, loading answers, moving vertices around, fixing vertices in places, using hand-made
+   physics (short edges try to extend, long edges try to shrink) to make the picture closer to reality.
+
+-- borys/???: ??? 
