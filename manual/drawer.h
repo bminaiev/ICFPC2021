@@ -9,18 +9,26 @@ int showIds;
 int curVID;
 
 void draw() {
-    if (bonusname == "GLOBALIST") {
-        v.p.setPen(yellowPen);
-        v.p.setBrush(yellowBrush);
-    } else if (bonusname == "BREAK_A_LEG") {
-        v.p.setPen(bluePen);
-        v.p.setBrush(blueBrush);
-    } else {
-        v.p.setPen(magentaPen);
-        v.p.setBrush(magentaBrush);
-    }
+    forn(i, bonusname.size()) {
+        if (bonusname[i] == "GLOBALIST") {
+            v.p.setPen(yellowPen);
+            v.p.setBrush(yellowBrush);
+        } else if (bonusname[i] == "BREAK_A_LEG") {
+            v.p.setPen(bluePen);
+            v.p.setBrush(blueBrush);
+        } else if (bonusname[i] == "SUPERFLEX") {
+            v.p.setPen(lightBluePen);
+            v.p.setBrush(lightBlueBrush);
+        } else if (bonusname[i] == "WALLHACK") {
+            v.p.setPen(orangePen);
+            v.p.setBrush(orangeBrush);
+        } else {
+            v.p.setPen(magentaPen);
+            v.p.setBrush(magentaBrush);
+        }
 
-    v.p.drawEllipse(bonus.x * SCALE - 4, bonus.y * SCALE - 4, 9, 9);
+        v.p.drawEllipse(bonus[i].x * SCALE - 3, bonus[i].y * SCALE - 3, 7, 7);
+    }    
 
     v.p.setPen(darkWhitePen);
     v.p.setBrush(darkWhiteBrush);

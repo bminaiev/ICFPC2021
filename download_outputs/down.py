@@ -18,6 +18,7 @@ for i in range(1, 133):
   w = b'a href="/solutions/'
   pos = r.content.find(w)
   sol = str(r.content[pos+len(w):pos+len(w)+36])[2:-1]
+  # sol = 'b95437f4-3ecd-4ace-95c0-72e8854f97d5'
   r = requests.get("https://poses.live/solutions/" + sol + "/download", headers={'cookie': cookies})
   if convert:
     js = json.loads(r.content)

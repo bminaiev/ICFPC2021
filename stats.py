@@ -6,6 +6,16 @@ cookies = "session=8e493aa7-3270-4cbd-adf6-6027d3eeeb53; spockcookie=Oksn_N6VJHI
 r = requests.get("https://poses.live/problems", headers={'cookie': cookies})
 total = 0
 total_best = 0
+hc = {
+    71: 8212,
+    74: 4903,
+    81: 0,
+    109: 958,
+    115: 46436,
+    118: 4539,
+    120: 17774,
+    121: 14927,
+}
 for row in r.text.split("</tr><tr>"):
     if not row.startswith("<td>"):
         continue
@@ -15,8 +25,12 @@ for row in r.text.split("</tr><tr>"):
         our = int(tok[7])
         best = int(tok[10])
     except:
-        our = -1
-        best = int(tok[9])
+        try:
+            our = hc.get(int(test_id), -1)
+            best = int(tok[9])
+        except:
+            our = hc.get(int(test_id), -1)
+            best = int(tok[10])
 
     fin = "inputs/{0}.problem".format(test_id)
     with open(fin) as f:

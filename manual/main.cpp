@@ -485,7 +485,7 @@ void doFix() {
                 PointD sh(dx, dy);
                 Point t(points[i].x + dx, points[i].y + dy);
                 if (!ev.c.IsPointInside(t)) continue;
-                double cscore = calcPen(sh);
+                double cscore = calcPen(sh) + abs(dx) + abs(dy);
                 if (cscore < best) {
                     best = cscore;
                     bsh = sh;
@@ -543,7 +543,9 @@ void doBindAll() {
 
 void doMove() {
     forn(i, N) {
-        points[i].x -= 1;
+        // swap(points[i].x, points[i].y);
+        points[i].y -= 1;
+        // points[i].x += 1;
     }
 }
 

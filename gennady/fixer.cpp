@@ -30,6 +30,8 @@ const bool can_move_from_holes = false;
 #include <ctime>
 #include "evaluator.h"
 
+const int VERTEX_ID = 27;
+
 using namespace std;
 
 template <typename A, typename B>
@@ -260,6 +262,7 @@ int main(int argc, char** argv) {
   double init_temp = 0.05;
   double final_temp = 0.000001;
   const int ITERS = 2000;
+  can_move[VERTEX_ID] = false;
   for (int outer = 0; outer < ITERS; outer++) {
     double temp = init_temp * pow(final_temp / init_temp, outer * 1.0 / ITERS);
     for (int rep = 0; rep < nv; rep++) {

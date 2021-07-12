@@ -27,6 +27,8 @@
 #include <ctime>
 #include "evaluator.h"
 
+const int VERTEX_ID = 27;
+
 using namespace std;
 
 template <typename A, typename B>
@@ -232,15 +234,20 @@ int main(int argc, char** argv) {
   auto ans_v = v;
   debug(nv, np, eps);
 
-  // for (int mv = 0; mv < nv; mv++) {
-  for (int me = 0; me < ne; me++) {
+  for (int mv = 0; mv < nv; mv++) {
+  // for (int me = 0; me < ne; me++) {
     v = ans_v;
-    vector<int> test = g[edges[me].first];
-    for (int qv : g[edges[me].second]) test.push_back(qv);
-    sort(test.begin(), test.end());
-    test.resize(unique(test.begin(), test.end()) - test.begin());
-    // vector<int> test = g[mv];
-    // test.push_back(mv);
+    // vector<int> test = g[edges[me].first];
+    // for (int qv : g[edges[me].second]) test.push_back(qv);
+    // sort(test.begin(), test.end());
+    // test.resize(unique(test.begin(), test.end()) - test.begin());
+    vector<int> test = g[mv];
+    test.push_back(mv);
+
+    vector<int> t2;
+    for (int qv : test) if (qv != VERTEX_ID) t2.push_back(qv);
+    test = t2;
+
     debug(test);
     for (int vd : test) v[vd] = Point(-1, -1);
 
@@ -251,7 +258,7 @@ int main(int argc, char** argv) {
 
     vector<vector<Point>> oknp(nv);
     long long prod = 1;
-    const size_t KO = 111;
+    const size_t KO = 100 + rand() % 500;
     for (int i = 0; i < nv; i++) {
       if (taken[i]) continue;
       for (const auto& tp : inner) {
@@ -292,7 +299,7 @@ int main(int argc, char** argv) {
     }
 
     long long difficulty = prod * nv;
-    if (difficulty > 1e8) {
+    if (difficulty > 2e6) {
       cerr << ">>> skip this test, difficulty = " << difficulty << " <<<\n";
       continue;
     } else {
@@ -422,8 +429,9 @@ int main(int argc, char** argv) {
     };
 
     Dfs(0);
-    // cout << "done for " << mv << " of " << nv << ", best_score = " << best_score << endl;
-    cout << "done for " << me << " of " << ne << ", best_score = " << best_score << endl;
+    cout << "done for " << mv << " of " << nv << ", best_score = " << best_score << endl;
+    debug(xid);
+    // cout << "done for " << me << " of " << ne << ", best_score = " << best_score << endl;
   }
 
   cout << "totally done\n";

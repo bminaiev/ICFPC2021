@@ -30,7 +30,7 @@
 
 
 
-const int VERTEX_ID = -1;
+const int VERTEX_ID = 27;
 
 
 using namespace std;

@@ -130,8 +130,8 @@ vector<int> mt, glue;
 int test_id;
 Evaluator ev;
 vector<vector<int>> g;
-Point bonus;
-string bonusname;
+vector<Point> bonus;
+vector<string> bonusname;
 
 void readInput() {
     const string fname = "../inputs_conv/" + to_string(test_id) + ".problem";
@@ -172,9 +172,11 @@ void readInput() {
 
     int B, bp;
     cin >> B;
+    bonusname.resize(B);
+    bonus.resize(B);
     forn(ib, B) {
-        cin >> bonusname >> bp >> bonus.x >> bonus.y;    
-        cerr << "contains bonus " << bonusname << " for problem " << bp << endl;
+        cin >> bonusname[ib] >> bp >> bonus[ib].x >> bonus[ib].y;    
+        cerr << "contains bonus " << bonusname[ib] << " for problem " << bp << endl;
     }
 
     poly.resize(H);
