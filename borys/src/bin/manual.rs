@@ -1,5 +1,5 @@
 use std::time::Duration;
-use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer, load_best_solution, rec_optimizer, rec_optimizer2, UsedBonus, force_save_solution, eps_optimizer};
+use borys::{load_test, Solution, Task, Point, load_submission, Shift, save_solution, local_optimizer, load_best_solution, rec_optimizer, rec_optimizer2, UsedBonus, force_save_solution, eps_optimizer, WANT_BONUSES};
 use borys::helper::Helper;
 use borys::rand::Random;
 use borys::vizualizer::{Visualizer, AdditionalState, UserEvent};
@@ -7,7 +7,7 @@ use sdl2::render::{Canvas};
 use std::fs::File;
 use rec_optimizer2::optimize;
 
-const TEST_ID: usize = 60;
+const TEST_ID: usize = 2;
 
 
 fn is_good_position(t: &Task, h: &Helper, v: usize, positions: &[Point], disabled: &[bool]) -> bool {
@@ -212,8 +212,11 @@ pub fn main() {
                 UserEvent::ForceSaveWithBonus => {
                     println!("Force saving solution..");
                     if solution.used_bonuses.is_empty() {
-                        // TODO: DON'T FORGET TO CHANGE PROBLEM HERE!!!
-                        solution.used_bonuses.push(UsedBonus { bonus: String::from("GLOBALIST"), problem: 92 });
+                        for b in WANT_BONUSES.iter() {
+                            if b.problem_id == TEST_ID {
+                                solution.used_bonuses.push(UsedBonus { bonus: String::from(b.bonus), problem: b.from_problem });
+                            }
+                        }
                     }
                     force_save_solution(&solution, TEST_ID, &mut f_all, &task);
                 }

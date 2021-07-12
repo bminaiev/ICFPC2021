@@ -17,7 +17,7 @@ pub struct Visualizer<'ttf> {
     zoom: i32,
 }
 
-const MAX_SIZE: i32 = 2000;
+const MAX_SIZE: i32 = 800;
 
 fn color_inside(from: Color, to: Color, mut part: f64) -> Color {
     // if part > 1.0 {
@@ -81,12 +81,13 @@ impl<'a> Visualizer<'a> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
-        let display = video_subsystem.display_bounds(1).unwrap();
-
+        let display = video_subsystem.display_bounds(0).unwrap();
+        const SX: i32 = 0;
+        const SY: i32 = 0;
         let zoom = max(1, MAX_SIZE / helper.max_c);
 
-        let window = video_subsystem.window("rust-sdl2 demo", (helper.max_c * zoom) as u32, (helper.max_c * zoom) as u32)
-            .position(display.x + 1000, display.y + 400)
+        let window = video_subsystem.window("rust-sdl2 demo", (helper.max_c * zoom + 100) as u32, (helper.max_c * zoom + 100) as u32)
+            .position(display.x + SX, display.y + SY)
             .build()
             .unwrap();
 
@@ -265,8 +266,11 @@ impl<'a> Visualizer<'a> {
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
                     events.push(UserEvent::Shift(Shift { dx: 0, dy: -1 }));
                 }
-                Event::KeyDown { keycode: Some(Keycode::Num9), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Num3), .. } => {
                     events.push(UserEvent::Shift(Shift { dx: 1, dy: 1 }));
+                }
+                Event::KeyDown { keycode: Some(Keycode::Num1), .. } => {
+                    events.push(UserEvent::Shift(Shift { dx: -1, dy: 1 }));
                 }
                 Event::KeyDown { keycode: Some(Keycode::O), .. } => {
                     events.push(UserEvent::RunLocalOptimizations);

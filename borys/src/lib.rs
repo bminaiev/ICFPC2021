@@ -110,15 +110,20 @@ impl Solution {
     }
 }
 
-struct WantBonus {
-    problem_id: usize,
-    bonus: &'static str,
+pub struct WantBonus {
+    pub problem_id: usize,
+    pub bonus: &'static str,
+    pub from_problem: usize,
 }
 
-const WANT_BONUSES: [WantBonus; 3] = [
-    WantBonus { problem_id: 81, bonus: "GLOBALIST" },
-    WantBonus { problem_id: 7, bonus: "GLOBALIST" },
-    WantBonus { problem_id: 60, bonus: "GLOBALIST" }];
+pub const WANT_BONUSES: [WantBonus; 6] = [
+    WantBonus { problem_id: 81, bonus: "GLOBALIST", from_problem: 0 },
+    WantBonus { problem_id: 7, bonus: "GLOBALIST", from_problem: 0 },
+    WantBonus { problem_id: 60, bonus: "GLOBALIST", from_problem: 0 },
+    WantBonus { problem_id: 1, bonus: "GLOBALIST", from_problem: 0 },
+    WantBonus { problem_id: 9, bonus: "GLOBALIST", from_problem: 29 },
+    WantBonus { problem_id: 87, bonus: "GLOBALIST", from_problem: 2 },
+];
 
 impl Solution {
     pub fn create(vertices: Vec<Point>, t: &Task, h: &Helper) -> Self {
@@ -236,6 +241,7 @@ fn conv_points(pts: &[PointInput]) -> Vec<Point> {
     pts.iter().map(|p| Point { x: p[0], y: p[1] }).collect()
 }
 
+
 pub fn conv_input(t: &Input) -> Task {
     let hole = conv_points(&t.hole);
     let fig = conv_points(&t.figure.vertices);
@@ -244,8 +250,8 @@ pub fn conv_input(t: &Input) -> Task {
     for bonus in t.bonuses.iter() {
         for want in WANT_BONUSES.iter() {
             if want.bonus == bonus.bonus && want.problem_id == bonus.problem {
-                bonuses.push(bonus.clone())
-            }
+        bonuses.push(bonus.clone())
+        }
         }
     }
     return Task { hole, fig, edges, epsilon: t.epsilon, bonuses };

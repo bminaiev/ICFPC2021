@@ -140,7 +140,7 @@ fn solve_rec(t: &Task, helper: &Helper, cur_positions: &mut Vec<Option<Point>>, 
     };
 }
 
-const MAX_ITERS: usize = 10_000;
+const MAX_ITERS: usize = 50_000;
 
 fn split_by_edge(t: &Task, split_edge: &Edge) -> Option<(Vec<usize>, Vec<usize>)> {
     let mut comp_id = vec![0; t.fig.len()];

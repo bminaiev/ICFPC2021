@@ -11,6 +11,8 @@ use borys::helper::Helper;
 use borys::vizualizer::Visualizer;
 
 
+const SKIP_LOCAL_OPT: bool = true;
+
 fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
     let helper = Helper::create(t);
 
@@ -19,13 +21,15 @@ fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
     match solver::solve_with_helper(t, &helper, rnd) {
         None => None,
         Some(mut solution) => {
-            loop {
-                let old_dislikes = solution.dislikes;
-                let local_optimized_solution = local_optimizer::optimize(t, &helper, solution, rnd, &mut viz);
-                let global_optimized = solver::not_local_optimize(t, &helper, rnd, local_optimized_solution);
-                solution = global_optimized;
-                if solution.dislikes >= old_dislikes {
-                    break;
+            if !SKIP_LOCAL_OPT {
+                loop {
+                    let old_dislikes = solution.dislikes;
+                    let local_optimized_solution = local_optimizer::optimize(t, &helper, solution, rnd, &mut viz);
+                    let global_optimized = solver::not_local_optimize(t, &helper, rnd, local_optimized_solution);
+                    solution = global_optimized;
+                    if solution.dislikes >= old_dislikes {
+                        break;
+                    }
                 }
             }
             Some(solution)
@@ -35,15 +39,15 @@ fn solve(t: &Task, rnd: &mut Random) -> Option<Solution> {
 
 
 fn main() {
-    const TASK: usize = 85;
+    const TASK: usize = 109;
     let mut f_all = File::create("outputs/all_scores.txt").unwrap();
     // 101 - negative coordinates
     let not_interesting_tests: Vec<_> = (11..=41).chain(vec![9, 43, 45, 46, 47, 49, 51, 52, 53, 54, 63, 64, 65, 68, 70, 72, 73, 74, 75, 78, 90, 95, 100, 101, 114]).collect();
 
-    let mut rnd = Random::new(254614);
+    let mut rnd = Random::new(2546114);
     for GLOBAL_ITER in 0..1 {
         println!("GLOBAL ITER: {}", GLOBAL_ITER);
-        for problem_id in 115..=132 {
+        for problem_id in TASK..=TASK {
             if not_interesting_tests.contains(&problem_id) {
                 println!("Skip test: {}", problem_id);
                 continue;

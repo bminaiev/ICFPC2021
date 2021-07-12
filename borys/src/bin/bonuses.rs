@@ -23,6 +23,9 @@ fn main() {
                 println!("can get bonus {:?} if solve cool task: {}", bonus, test_id);
                 can_use_globalist.push(bonus.problem);
             }
+            if bonus.problem == 9 {
+                println!("WOW??? {:?}, from {}", bonus, test_id)
+            }
         }
     }
     can_use_globalist.sort();

@@ -136,7 +136,7 @@ pub fn main() {
 
     let outputs_suffix = "_romka"; // "_romka"
 
-    const TEST: usize = 3;
+    const TEST: usize = 2;
     for test in TEST..=TEST {
         println!("TEST: {}", test);
         let mut vertices: Vec<_> = load_best_solution(test);
