@@ -33,4 +33,20 @@ Here's an overview of file groups:
    Allows saving answers, loading answers, moving vertices around, fixing vertices in places, using hand-made
    physics (short edges try to extend, long edges try to shrink) to make the picture closer to reality.
 
--- borys/???: ??? 
+-- borys/bin/main.rs: program tries to find some valid solution with not so optimal score. It just recursively
+   tries to put vertices to valid positions. If there is no valid position because of already present vertices,
+   it starts search from the beginning. It also runs some basic local optimizations on received answers.
+
+-- borys/bin/ext_local_optimize.rs: loads current best solution, and tries to apply some local optimizations to
+   decrease dislikes count. Can move one point to a random point, or shift subset of points by a fixed
+   direction. Sometimes uses solution with higher number of dislikes to avoid falling into local optima.
+
+-- borys/bin/manual.rs: visualizer of current solution for test with possibility to manually modify it. It has
+   a built-in support of basic optimizations:
+     . can try to move point by recursively moving all others;
+     . can run local optimizations;
+     . can move points even violation edge distances rules;
+     . can optimize sum of edges errors (if we use globalist bonus);
+     . can try to randomly reorder some subset of vertices.
+
+-- borys/bin/*.rs: some tools to show bonuses/convert inputs or outputs.
