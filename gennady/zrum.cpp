@@ -30,7 +30,7 @@
 
 
 
-const Point BONUS = Point(-1, -1);
+const int VERTEX_ID = -1;
 
 
 using namespace std;
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
     double temp = init_temp * pow(final_temp / init_temp, outer * 1.0 / ITERS);
     for (int rep = 0; rep < nv; rep++) {
       int i = rng() % nv;
-      if (v[i] == BONUS) continue;
+      if (i == VERTEX_ID) continue;
       int dx = (int) (rng() % 3) - 1;
       int dy = (int) (rng() % 3) - 1;
       if (dx == 0 && dy == 0) continue;
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
                     fail = true;
                     break;
                   }
-      if (v[j] == BONUS) {fail = true; break;}
+      if (j == VERTEX_ID) {fail = true; break;}
                   que.push_back(j);
                   moved[j] = true;
                 }
