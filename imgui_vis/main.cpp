@@ -119,38 +119,38 @@ void readInput(const string& fname) {
 }
 
 void fileWindow() {
-    ImGui::Begin("Tests");
+    if(ImGui::Begin("Tests")) {
+        std::string path = "../inputs_conv/";
 
-    std::string path = "../inputs_conv/";
-
-    vector<pair<int, string>> tests;
-    for (const auto & entry : fs::directory_iterator(path)) {
-        string s = entry.path();
-        tests.emplace_back(0, s);
-        int i = 0;
-        while (i < s.size() && (s[i] < '0' || s[i] > '9')) i++;
-        if (i >= s.size()) continue;
-        int j = i;
-        while (s[j] >= '0' && s[j] <= '9') j++;
-        sscanf(s.substr(i, j).c_str(), "%d", &tests.back().first);
-    }
-
-    sort(tests.begin(), tests.end());
-    static int selected_id = -1;
-
-    if (ImGui::BeginListBox("T", ImVec2(250, ImGui::GetFrameHeightWithSpacing() * 16))) {
-        for (const auto& [idx, path] : tests) {
-            const bool is_selected = (idx == selected_id);
-            if (ImGui::Selectable(path.c_str(), is_selected)) {
-                selected_id = idx;
-                readInput(path);
-            }
-
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
+        vector<pair<int, string>> tests;
+        for (const auto & entry : fs::directory_iterator(path)) {
+            string s = entry.path();
+            tests.emplace_back(0, s);
+            int i = 0;
+            while (i < s.size() && (s[i] < '0' || s[i] > '9')) i++;
+            if (i >= s.size()) continue;
+            int j = i;
+            while (s[j] >= '0' && s[j] <= '9') j++;
+            sscanf(s.substr(i, j).c_str(), "%d", &tests.back().first);
         }
-        ImGui::EndListBox();
+
+        sort(tests.begin(), tests.end());
+        static int selected_id = -1;
+
+        if (ImGui::BeginListBox("T", ImVec2(250, ImGui::GetFrameHeightWithSpacing() * 16))) {
+            for (const auto& [idx, path] : tests) {
+                const bool is_selected = (idx == selected_id);
+                if (ImGui::Selectable(path.c_str(), is_selected)) {
+                    selected_id = idx;
+                    readInput(path);
+                }
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndListBox();
+        }
     }
 
     ImGui::End();
@@ -224,17 +224,17 @@ void doInt() {
 }
 
 void optsWindow() {
-    if (ImGui::Begin("Options")) {
+    if (ImGui::Begin("Solution")) {
         ImGui::SliderFloat("Iter", &iterStep, 0.01f, 0.8f, "iter step = %.3f");
         if (ImGui::Button("Do int")) doInt();
 
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void inputWindow() {
     auto& io = ImGui::GetIO();
-    if (ImGui::Begin("Mouse")) {
+    if (ImGui::Begin("Mouse & Keyboard")) {
         if (ImGui::IsMousePosValid())
             ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
         else
@@ -251,9 +251,8 @@ void inputWindow() {
 
         const ImGuiKey key_first = ImGuiKey_NamedKey_BEGIN;
         ImGui::Text("Keys down:");          for (ImGuiKey key = key_first; key < ImGuiKey_COUNT; key++) { if (ImGui::IsKeyDown(key)) { ImGui::SameLine(); ImGui::Text("\"%s\" %d", ImGui::GetKeyName(key), key); } }
-
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 int main(int, char**)
