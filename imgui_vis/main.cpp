@@ -16,6 +16,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 #include "../manual/point.h"
 
@@ -263,6 +264,7 @@ int main(int, char**)
     while (true) {
         if (sw.checkQuit()) break;
         sw.newFrame();
+        ImGui::GetIO().FontGlobalScale = 1.5;
 
         inputWindow();
         fileWindow();
